@@ -8,28 +8,44 @@ describe "Ping Android" do
     @params = {"device_pin" => @c.device_pin,
       "sources" => [@s.name], "message" => 'hello world', 
       "vibrate" => '5', "badge" => '5', "sound" => 'hello.mp3'}
-    post = mock('post')
-    post.stub!(:new).and_return(post)
-    post.stub!(:set_form_data)
-    Net::HTTP::Post.stub!(:new).and_return(post)
-    
-    @http = mock('http')
-    @http.stub!(:request)
-    @http.stub!(:use_ssl=)
-    @http.stub!(:verify_mode=)
-    @http.stub!(:start).and_yield(@http)
-    Net::HTTP.stub!(:new).and_return(@http)
+    @response = mock('response')
   end
   
-  it "should ping android" do
-    Android.ping(@params)
+  it "should ping android successfully" do
+    result = 'id=0:34234234134254%abc123\n'
+    @response.stub!(:code).and_return(200)
+    @response.stub!(:body).and_return(result)
+    RestClient.stub!(:post).and_return(@response)
+    Android.ping(@params).body.should == result
   end
   
-  it "should ping android with connection error" do
+  it "should ping android with 503 connection error" do
     error = 'Connection refused'
-    @http.stub!(:request).and_return { raise SocketError.new(error) }
-    Android.should_receive(:log).once.with("Error while sending ping: #{error}")
-    lambda { Android.ping(@params) }.should raise_error(SocketError,error)
+    @response.stub!(:body).and_return(error)
+    RestClient.stub!(:post).and_return { raise RestClient::Exception.new(@response,503) }
+    Android.should_receive(:log).twice
+    lambda { Android.ping(@params) }.should raise_error(RestClient::Exception)
+  end
+  
+  it "should ping android with 200 error message" do
+    error = 'Error=QuotaExceeded'
+    @response.stub!(:code).and_return(200)
+    @response.stub!(:body).and_return(error)
+    @response.stub!(:[]).and_return(nil)
+    RestClient.stub!(:post).and_yield(@response)
+    Android.should_receive(:log).twice
+    lambda { Android.ping(@params) }.should raise_error(Android::AndroidPingError, "Android ping error: QuotaExceeded")
+  end
+  
+  it "should ping android with stale auth token" do
+    @response.stub!(:code).and_return(200)
+    @response.stub!(:body).and_return('')
+    @response.stub!(:[]).and_return({:update_client_auth => 'abc123'})
+    RestClient.stub!(:post).and_yield(@response)
+    Android.should_receive(:log).twice
+    lambda { Android.ping(@params) }.should raise_error(
+      Android::StaleAuthToken, "Stale auth token, please update :authtoken: in settings.yml."
+    )
   end
   
   it "should compute c2d_message" do
