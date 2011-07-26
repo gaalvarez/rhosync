@@ -1,3 +1,10 @@
+## 2.1.10
+* #16001227 - raise exceptions on c2dm errors
+* #1018 - delete read state for user as well
+
+## 2.1.9
+* #15143911 - Fix for incident schema changed message
+
 ## 2.1.8
 * #1018 - added functionality to delete user source data on user delete
 * updated to rake 0.9.2
