@@ -22,7 +22,8 @@ module Rhosync
         end
         _decrypt
       rescue Exception => e
-        #puts e.backtrace.join('\n')
+        log e.message
+        log e.backtrace.join("\n")
         raise LicenseException.new("Error verifying license.")
       end
     end
