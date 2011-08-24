@@ -121,7 +121,7 @@ describe "RhosyncApi" do
   
   it "should list client attributes using direct api call" do
     res = RhosyncApi::get_client_params('',@api_token,@c.id)
-    res.delete_if { |attrib| attrib['name'] == 'rho__id' }
+    res.delete_if { |attrib| attrib['name'] == 'rho__id' || attrib['name'] == 'last_sync'}
     res.sort{|x,y| x['name']<=>y['name']}.should == [
       {"name"=>"device_type", "value"=>"Apple", "type"=>"string"}, 
       {"name"=>"device_pin", "value"=>"abcd", "type"=>"string"}, 

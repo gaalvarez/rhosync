@@ -8,6 +8,7 @@ module Rhosync
     field :phone_id,:string
     field :user_id,:string
     field :app_id,:string
+    field :last_sync,:datetime
     attr_accessor :source_name
     validates_presence_of :app_id, :user_id
     
@@ -29,6 +30,7 @@ module Rhosync
     end
     
     def self.load(id,params)
+      params.merge!(:last_sync => Time.now)
       validate_attributes(params)
       super(id,params)
     end

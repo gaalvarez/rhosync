@@ -4,6 +4,8 @@
   SampleAdapter:
     :partition_type: app    
     :poll_interval: 500
+  Product:
+    :poll_interval: 300
 
 :development:
   :licensefile: settings/license.key
