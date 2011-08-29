@@ -177,6 +177,20 @@ describe "Server" do
       verify_result(@c.docname(:cd) => {})
     end
     
+    it "should respond to clientreset with individual adapters" do
+      @c.source_name = 'SimpleAdapter'
+      set_state(@c.docname(:cd) => @data)
+      @c.source_name = 'SampleAdapter'
+      set_state(@c.docname(:cd) => @data)
+      sources = [{'name' => 'SimpleAdapter'}]
+      get "/application/clientreset", :client_id => @c.id,:version => ClientSync::VERSION, :sources => sources
+      JSON.parse(last_response.body).should == @source_config
+      @c.source_name = 'SampleAdapter'
+      verify_result(@c.docname(:cd) => @data)
+      @c.source_name = 'SimpleAdapter'
+      verify_result(@c.docname(:cd) => {})
+    end
+    
     it "should switch client user if client user_id doesn't match session user" do
       set_test_data('test_db_storage',@data)
       get "/application",:client_id => @c.id,:source_name => @s.name,:version => ClientSync::VERSION

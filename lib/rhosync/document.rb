@@ -25,6 +25,12 @@ module Document
     Store.flash_data(docname(doctype))
   end
   
+  def flash_source_data(doctype, from_source)
+    self.source_name=from_source
+    docnamestr = docname('') + doctype
+    Store.flash_data(docnamestr)
+  end
+  
   def rename(srcdoctype,dstdoctype)
     Store.rename(docname(srcdoctype),docname(dstdoctype))
   end

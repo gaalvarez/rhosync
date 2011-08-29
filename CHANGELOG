@@ -1,6 +1,7 @@
 ## 2.1.10
 * #16001227 - raise exceptions on c2dm errors
 * #1018 - delete read state for user as well
+* #17526603 - implement clientreset support for specified sources
 
 ## 2.1.9
 * #15143911 - Fix for incident schema changed message

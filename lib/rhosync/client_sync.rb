@@ -204,8 +204,16 @@ module Rhosync
         
     class << self
       # Resets the store for a given app,client
-      def reset(client)
-        client.flash_data('*') if client
+      # Resets the store for a given app,client
+      def reset(client, params=nil)
+        return unless client
+        if params == nil or params[:sources] == nil
+          client.flash_data('*')
+        else
+          params[:sources].each do |source|
+            client.flash_source_data('*', source['name'])
+          end
+        end
       end
     
       def search_all(client,params=nil)

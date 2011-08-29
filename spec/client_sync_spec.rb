@@ -150,6 +150,24 @@ describe "ClientSync" do
       verify_result(@c.docname(:cd) => {})
       Client.load(@c.id,{:source_name => @s.name}).should_not be_nil
     end
+    
+    it "should handle reset on individual source adapters" do
+      @c.source_name = 'SampleAdapter'
+      set_state(@c.docname(:cd) => @data)
+      verify_result(@c.docname(:cd) => @data)
+      
+      @c.source_name = 'SimpleAdapter'
+      set_state(@c.docname(:cd) => @data)
+      verify_result(@c.docname(:cd) => @data)
+      
+      sources = [{'name'=>'SimpleAdapter'}]
+      ClientSync.reset(@c, {:sources => sources})
+      
+      @c.source_name = 'SampleAdapter'
+      verify_result(@c.docname(:cd) => @data)
+      @c.source_name = 'SimpleAdapter'
+      verify_result(@c.docname(:cd) => {})
+    end
   end
   
   describe "search" do

@@ -236,7 +236,7 @@ module Rhosync
 
     get '/application/clientreset' do
       catch_all do 
-        ClientSync.reset(current_client)
+        ClientSync.reset(current_client, params)
         source_config.to_json
       end
     end
