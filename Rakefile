@@ -1,4 +1,6 @@
 require 'yaml'
+load 'tasks/redis.rake'
+
 $:.unshift File.join(File.dirname(__FILE__),'lib')
 require 'rhosync'
 
@@ -109,5 +111,3 @@ def ask(msg)
   print msg
   STDIN.gets.chomp
 end
-
-load 'tasks/redis.rake'
