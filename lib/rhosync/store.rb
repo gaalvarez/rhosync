@@ -188,7 +188,7 @@ module Rhosync
       # end
       
       def release_lock(dockey,lock)
-        @@db.del(_lock_key(dockey)) if (lock >= Time.now.to_i)
+        @@db.del(_lock_key(dockey)) if Rhosync.raise_on_expired_lock or (lock >= Time.now.to_i)
       end
       
       # Create a copy of srckey in dstkey
