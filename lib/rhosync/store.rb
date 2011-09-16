@@ -145,7 +145,7 @@ module Rhosync
       def lock(dockey,timeout=0,raise_on_expire=false)
         m_lock = get_lock(dockey,timeout,raise_on_expire)
         res = yield
-        release_lock(dockey,m_lock)
+        release_lock(dockey,m_lock,raise_on_expire)
         res
       end
       
@@ -187,8 +187,8 @@ module Rhosync
       #   Time.now.to_i+timeout+1
       # end
       
-      def release_lock(dockey,lock)
-        @@db.del(_lock_key(dockey)) if Rhosync.raise_on_expired_lock or (lock >= Time.now.to_i)
+      def release_lock(dockey,lock,raise_on_expire=false)
+        @@db.del(_lock_key(dockey)) if raise_on_expire or Rhosync.raise_on_expired_lock or (lock >= Time.now.to_i)
       end
       
       # Create a copy of srckey in dstkey
