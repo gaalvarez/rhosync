@@ -50,8 +50,11 @@ module Rhosync
       # Adds a simple key/value pair
       def put_value(dockey,value)
         if dockey
-          @@db.del(dockey)
-          @@db.set(dockey,value.to_s) if value
+          if value
+            @@db.set(dockey,value.to_s)
+          else
+            @@db.del(dockey)
+          end
         end
       end
     
