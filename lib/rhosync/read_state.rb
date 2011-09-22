@@ -1,6 +1,7 @@
 module Rhosync  
   class ReadState < Model
     field :refresh_time, :integer
+    field :retry_counter, :integer
   
     def self.create(fields)
       fields[:id] = get_id(fields)
@@ -8,6 +9,7 @@ module Rhosync
       fields.delete(:user_id)
       fields.delete(:source_name)
       fields[:refresh_time] ||= Time.now.to_i
+      fields[:retry_counter] ||= 0
       super(fields,{})
     end
   

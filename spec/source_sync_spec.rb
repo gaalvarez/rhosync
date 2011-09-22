@@ -208,6 +208,77 @@ describe "SourceSync" do
       it "should do search with exception raised" do
         verify_read_operation_with_error('search')
       end
+      
+      it "should do query with exception raised and update refresh time only after retries limit is exceeded" do
+        @s.retry_limit = 1
+        msg = "Error during query"
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        # 1) if retry_limit is set to N - then, first N retries should not update refresh_time
+        @s.read_state.retry_counter.should == 1
+        @s.read_state.refresh_time.should <= Time.now.to_i
+        
+        # try once more and fail again
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        
+        # 2) if retry_limit is set to N and number of retries exceeded it - update refresh_time
+        @s.read_state.retry_counter.should == 0
+        @s.read_state.refresh_time.should > Time.now.to_i
+      end
+      
+      it "should do query with exception raised and restore state with succesfull retry" do
+        @s.retry_limit = 1
+        msg = "Error during query"
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        # 1) if retry_limit is set to N - then, first N retries should not update refresh_time
+        @s.read_state.retry_counter.should == 1
+        @s.read_state.refresh_time.should <= Time.now.to_i
+        
+        # try once more (with success)
+        expected = {'1'=>@product1,'2'=>@product2}
+        set_test_data('test_db_storage',expected)
+        @ss.do_query 
+        verify_result(@s.docname(:md) => expected, 
+          @s.docname(:errors) => {})
+        @s.read_state.retry_counter.should == 0
+        @s.read_state.refresh_time.should > Time.now.to_i
+      end
+      
+      it "should do query with exception raised and update refresh time if retry_limit is 0" do
+        @s.retry_limit = 0
+        msg = "Error during query"
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        #  if poll_interval is set to 0 - refresh time should be updated
+        @s.read_state.retry_counter.should == 0
+        @s.read_state.refresh_time.should > Time.now.to_i
+      end
+      
+      it "should do query with exception raised and update refresh time if poll_interval == 0" do
+        @s.retry_limit = 1
+        @s.poll_interval = 0
+        msg = "Error during query"
+        set_test_data('test_db_storage',{},msg,"query error")
+        prev_refresh_time = @s.read_state.refresh_time
+        # make sure refresh time is expired
+        sleep(1)
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        #  if poll_interval is set to 0 - refresh time should be updated
+        @s.read_state.retry_counter.should == 0
+        @s.read_state.refresh_time.should > prev_refresh_time
+      end
     end
     
     describe "app-level partitioning" do
@@ -221,7 +292,8 @@ describe "SourceSync" do
         verify_result("source:#{@test_app_name}:__shared__:#{@s_fields[:name]}:md" => expected)
         Store.db.keys("read_state:#{@test_app_name}:__shared__*").sort.should ==
           [ "read_state:#{@test_app_name}:__shared__:SampleAdapter:refresh_time",
-            "read_state:#{@test_app_name}:__shared__:SampleAdapter:rho__id"]
+            "read_state:#{@test_app_name}:__shared__:SampleAdapter:retry_counter",
+            "read_state:#{@test_app_name}:__shared__:SampleAdapter:rho__id"].sort
       end
     end
     

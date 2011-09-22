@@ -33,14 +33,14 @@ module Rhosync
     # specified amount.
     def increment!(name,amount=1)
       raise ArgumentError, "Only integer fields can be incremented." unless self.class.fields.include?({:name => name.to_s, :type => :integer})
-      redis.incr(field_key(name), amount)
+      redis.incrby(field_key(name), amount)
     end
   
     # Decrement the specified integer field by 1 or the
     # specified amount.
     def decrement!(name,amount=1)
       raise ArgumentError, "Only integer fields can be decremented." unless self.class.fields.include?({:name => name.to_s, :type => :integer})
-      redis.decr(field_key(name), amount)
+      redis.decrby(field_key(name), amount)
     end
     
     def next_id #:nodoc:

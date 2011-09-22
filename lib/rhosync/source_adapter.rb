@@ -41,20 +41,16 @@ module Rhosync
     
     def sync
       if @result and @result.empty?
-        @source.lock(:md) do |s|
-          s.flash_data(:md)
-          s.put_value(:md_size,0)
-        end
+        @source.flash_data(:md)
+        @source.put_value(:md_size,0)
       else
         if @result
           Store.put_data(@tmp_docname,@result) 
           @stash_size += @result.size
         end  
-        @source.lock(:md) do |s|
-          s.flash_data(:md)
-          Store.rename(@tmp_docname,s.docname(:md))
-          s.put_value(:md_size,@stash_size)
-        end
+        @source.flash_data(:md)
+        Store.rename(@tmp_docname,@source.docname(:md))
+        @source.put_value(:md_size,@stash_size)
       end
     end
     

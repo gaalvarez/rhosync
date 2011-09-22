@@ -90,7 +90,7 @@ module Rhosync
     
     # source fields
     define_fields([:id, :rho__id, :name, :url, :login, :password, :callback_url, :partition_type, :sync_type, 
-      :queue, :query_queue, :cud_queue, :belongs_to, :has_many], [:source_id, :priority])
+      :queue, :query_queue, :cud_queue, :belongs_to, :has_many], [:source_id, :priority, :retry_limit])
     
     def initialize(fields)
       self.name = fields['name'] || fields[:name]
@@ -112,6 +112,7 @@ module Rhosync
       fields[:rho__id] = fields[:name]
       fields[:belongs_to] = fields[:belongs_to].to_json if fields[:belongs_to]
       fields[:schema] = fields[:schema].to_json if fields[:schema]
+      fields[:retry_limit] = fields[:retry_limit] ? fields[:retry_limit] : 0
     end
         
     def self.create(fields,params)
@@ -262,14 +263,40 @@ module Rhosync
       self.poll_interval == 0 or 
       (self.poll_interval != -1 and self.read_state.refresh_time <= Time.now.to_i)
     end
-        
+         
     def if_need_refresh(client_id=nil,params=nil)
-      need_refresh = lock(:md) do |s|
-        check = check_refresh_time
-        s.read_state.refresh_time = Time.now.to_i + s.poll_interval if check
-        check
-      end
+      need_refresh = check_refresh_time
       yield client_id,params if need_refresh
+    end
+    
+    def update_refresh_time(query_failure = false)
+      if self.poll_interval == 0
+        self.read_state.refresh_time = Time.now.to_i + self.poll_interval
+        return
+      end
+      
+      allowed_update = true
+      # reset number of retries on succesfull query
+      # or if last refresh was more than 'poll_interval' time ago
+      if not query_failure or (Time.now.to_i - self.read_state.refresh_time >= self.poll_interval)
+        self.read_state.retry_counter = 0 
+      end
+      
+      # do not reset the refresh time on failure
+      # if retry limit is not reached
+      if query_failure
+        if self.read_state.retry_counter < self.retry_limit
+          allowed_update = false
+          self.read_state.increment!(:retry_counter)
+        # we have reached the limit - update the refresh time
+        # and reset the counter
+        else
+          self.read_state.retry_counter = 0 
+        end
+      end
+      if allowed_update
+        self.read_state.refresh_time = Time.now.to_i + self.poll_interval
+      end
     end
           
     private

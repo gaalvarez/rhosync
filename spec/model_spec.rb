@@ -207,12 +207,12 @@ describe Rhosync::Model do
     end
     
     it "should send INCR when #increment! is called on an integer" do
-      @redisMock.should_receive(:incr).with("test_increments:1:foo", 1)
+      @redisMock.should_receive(:incrby).with("test_increments:1:foo", 1)
       @x.increment!(:foo)
     end
     
     it "should send DECR when #decrement! is called on an integer" do
-      @redisMock.should_receive(:decr).with("test_increments:1:foo", 1)
+      @redisMock.should_receive(:decrby).with("test_increments:1:foo", 1)
       @x.decrement!(:foo)
     end
     
