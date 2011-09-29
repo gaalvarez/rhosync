@@ -46,7 +46,50 @@ module Rhosync
         end
         true
       end
-    
+      
+      # updates objects for a given doctype, source, user
+      # create new objects if necessary
+      def update_objects(dockey, data={})
+        return 0 unless dockey and data
+        
+        new_object_count = 0
+        doc = get_data(dockey)
+        @@db.pipelined do
+          data.each do |key,value|
+            is_create = doc[key].nil?
+            new_object_count += 1 if is_create
+            value.each do |attrib,value|
+              next if _is_reserved?(attrib, value)
+            
+              existing_value = is_create ? nil : doc[key][attrib]
+              @@db.srem(dockey, setelement(key,attrib,existing_value)) if existing_value
+              @@db.sadd(dockey, setelement(key,attrib,value))
+            end
+          end
+        end
+        new_object_count
+      end
+      
+      # Removes objects from a given doctype,source,user
+      def delete_objects(dockey,data=[])
+        return 0 unless dockey and data
+        
+        deleted_object_count = 0
+        doc = get_data(dockey)
+        @@db.pipelined do
+          data.each do |id|
+            if doc[id]
+              doc[id].each do |name,value|
+                @@db.srem(dockey, setelement(id,name,value))
+              end
+              deleted_object_count += 1
+            end
+            doc.delete(id)
+          end
+        end
+        deleted_object_count
+      end
+      
       # Adds a simple key/value pair
       def put_value(dockey,value)
         if dockey

@@ -4,6 +4,7 @@
 * use redis 2.2.12 by default
 * #18672811 - edge case produces race condition which leads to corruption of Store data
 * #18508155 - on failed syncs allow the user to retry it up to pre-defined number of times
+* #18888077 - implement Redis transactions optimization for push_objects and push_deletes
 
 ## 2.1.10
 * #16001227 - raise exceptions on c2dm errors

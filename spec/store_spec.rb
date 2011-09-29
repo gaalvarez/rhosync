@@ -51,6 +51,41 @@ describe "Store" do
       Store.get_data('mydata').should == data
     end
     
+    it "should update_objects with simple data and one changed attribute" do
+      data = { '1' => { 'hello' => 'world', "attr1" => 'value1' } }
+      update_data = { '1' => {'attr1' => 'value2'}}
+      Store.put_data('mydata', data)
+      Store.get_data('mydata').should == data
+      Store.update_objects('mydata', update_data)        
+      data['1'].merge!(update_data['1'])
+      Store.get_data('mydata').should == data
+    end
+    
+    it "should update_objects with simple data and verify that srem and sadd is called only on affected fields" do
+      data = { '1' => { 'hello' => 'world', "attr1" => 'value1' } }
+      update_data = { '1' => {'attr1' => 'value2', 'new_attr' => 'new_val'},
+                      '2' => {'whole_new_object' => 'new_value' } }
+      Store.put_data('mydata', data)
+      Store.db.should_receive(:srem).exactly(1).times
+      Store.db.should_receive(:sadd).exactly(3).times
+      Store.update_objects('mydata', update_data)        
+    end
+    
+    it "should delete_objects with simple data" do
+      data = { '1' => { 'hello' => 'world', "attr1" => 'value1' } }
+      Store.put_data('mydata', data)
+      Store.delete_objects('mydata', ['1'])
+      Store.get_data('mydata').should == {}
+    end
+    
+    it "should delete_objects with simple data and verify that srem is called only on affected fields" do
+      data = { '1' => { 'hello' => 'world', "attr1" => 'value1' } }
+      Store.put_data('mydata', data)
+      Store.db.should_receive(:srem).exactly(2).times
+      Store.db.should_receive(:sadd).exactly(0).times
+      Store.delete_objects('mydata', ['1'])        
+    end
+    
     it "should add simple array data to new set" do
       @data = ['1','2','3']
       Store.put_data(@s.docname(:md),@data).should == true

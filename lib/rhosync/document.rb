@@ -21,6 +21,14 @@ module Document
     Store.delete_data(docname(doctype),data)
   end
   
+  def update_objects(doctype,updates)
+    Store.update_objects(docname(doctype),updates)
+  end
+  
+  def remove_objects(doctype,deletes)
+    Store.delete_objects(docname(doctype),deletes)
+  end
+  
   def flash_data(doctype)
     Store.flash_data(docname(doctype))
   end

@@ -81,31 +81,57 @@ module Rhosync
         @source.app_id,@source.user_id,client_id,params)
     end
     
-    def push_objects(objects,timeout=10,raise_on_expire=false)
+    def push_objects(objects,timeout=10,raise_on_expire=false,rebuild_md=true)
       @source.lock(:md,timeout,raise_on_expire) do |s|
-        doc = @source.get_data(:md)
-        orig_doc_size = doc.size
-        objects.each do |id,obj|
-          doc[id] ||= {}
-          doc[id].merge!(obj)
-        end  
-        diff_count = doc.size - orig_doc_size
-        @source.put_data(:md,doc)
+        diff_count = 0
+        # in case of rebuild_md
+        # we clean-up and rebuild the whole :md doc
+        # on every request
+        if(rebuild_md)
+          doc = @source.get_data(:md)
+          orig_doc_size = doc.size
+          objects.each do |id,obj|
+            doc[id] ||= {}
+            doc[id].merge!(obj)
+          end  
+          diff_count = doc.size - orig_doc_size
+          @source.put_data(:md,doc)
+        else
+          # if rebuild_md == false
+          # we only operate on specific set values
+          # which brings a big optimization
+          # in case of small transactions
+          diff_count = @source.update_objects(:md, objects)
+        end
+        
         @source.update_count(:md_size,diff_count)
       end      
     end    
 
-    def push_deletes(objects,timeout=10,raise_on_expire=false)
+    def push_deletes(objects,timeout=10,raise_on_expire=false,rebuild_md=true)
       @source.lock(:md,timeout,raise_on_expire) do |s|
-        doc = @source.get_data(:md)
-        orig_doc_size = doc.size
-        objects.each do |id|
-          doc.delete(id)
-        end  
-        diff_count = doc.size - orig_doc_size
-        @source.put_data(:md,doc)
+        diff_count = 0
+        if(rebuild_md)
+          # in case of rebuild_md
+          # we clean-up and rebuild the whole :md doc
+          # on every request
+          doc = @source.get_data(:md)
+          orig_doc_size = doc.size
+          objects.each do |id|
+            doc.delete(id)
+          end  
+          diff_count = doc.size - orig_doc_size
+          @source.put_data(:md,doc)
+        else
+          # if rebuild_md == false
+          # we only operate on specific set values
+          # which brings a big optimization
+          # in case of small transactions
+          diff_count = -@source.remove_objects(:md, objects)
+        end
+        
         @source.update_count(:md_size,diff_count)
-      end      
+      end    
     end
     
     private
