@@ -60,10 +60,16 @@ module Rhosync
             new_object_count += 1 if is_create
             value.each do |attrib,value|
               next if _is_reserved?(attrib, value)
-              existing_element = is_create ? nil : setelement(key,attrib,doc[key][attrib])
+              
               new_element = setelement(key,attrib,value)
-              if existing_element.nil? or existing_element != new_element
-                @@db.srem(dockey, existing_element) if existing_element
+              element_exists = is_create ? false : doc[key].has_key?(attrib)
+              if element_exists
+                existing_element = setelement(key,attrib,doc[key][attrib])
+                if existing_element != new_element
+                  @@db.srem(dockey, existing_element)
+                  @@db.sadd(dockey, new_element)
+                end
+              else
                 @@db.sadd(dockey, new_element)
               end
             end

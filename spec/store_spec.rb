@@ -63,7 +63,7 @@ describe "Store" do
     
     it "should update_objects with simple data and verify that srem and sadd is called only on affected fields" do
       data = { '1' => { 'hello' => 'world', "attr1" => 'value1' } }
-      update_data = { '1' => {'attr1' => 'value2', 'new_attr' => 'new_val'},
+      update_data = { '1' => {'attr1' => 'value2', 'new_attr' => 'new_val', 'hello' => 'world'},
                       '2' => {'whole_new_object' => 'new_value' } }
       Store.put_data('mydata', data)
       Store.db.should_receive(:srem).exactly(1).times
