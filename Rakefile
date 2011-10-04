@@ -66,6 +66,7 @@ begin
     gemspec.files =  FileList["[A-Z]*", "{bench,bin,generators,lib,spec,tasks}/**/*"]
 
     # TODO: Due to https://www.pivotaltracker.com/story/show/3417862, we can't use JSON 1.4.3
+    gemspec.add_dependency "sinatra", "= 1.2.7"
     gemspec.add_dependency "json", "~>1.4.2"
     gemspec.add_dependency "sqlite3-ruby", "~>1.2.5"
     gemspec.add_dependency "rubyzip", "~>0.9.4"
@@ -73,7 +74,6 @@ begin
     gemspec.add_dependency "redis", "~>2.1.1"
     gemspec.add_dependency "resque", "~>1.14.0"
     gemspec.add_dependency "rest-client", "~>1.6.1"
-    gemspec.add_dependency "sinatra", "~>1.2"
     gemspec.add_dependency "templater", "~>1.0.0"
     gemspec.add_dependency "rake", "~>0.9.2"
     gemspec.add_development_dependency "log4r", "~>1.1.7"
