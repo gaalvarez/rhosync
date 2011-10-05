@@ -48,10 +48,10 @@ describe "Server" do
     User.load('new_user').should_not be_nil
   end
 
-  it "should failt to login if wrong content-type" do
+  it "should fail to login if wrong content-type" do
     User.load('unknown').should be_nil
     post "/login", {"login" => 'unknown', "password" => 'testpass'}.to_json, {'CONTENT_TYPE'=>'application/x-www-form-urlencoded'} 
-    last_response.should be_ok
+    last_response.should_not be_ok
     User.load('unknown').should be_nil
   end
   
@@ -255,11 +255,10 @@ describe "Server" do
       last_response.body.should == "Server error while processing client data"
     end
     
-    it "should handle client posting broken body" do
-      broken_json = ['foo']
-      post "/application", broken_json, {'CONTENT_TYPE'=>'application/json'}
-      last_response.status.should == 500
-      last_response.body.should == "Internal server error"
+    it "should not login if login is empty" do
+      post "/application/clientlogin", ''
+      last_response.status.should == 401
+      last_response.body.should == ""
     end
     
     it "should get inserts json" do

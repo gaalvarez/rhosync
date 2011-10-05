@@ -4,6 +4,7 @@ require 'erb'
 require 'json'
 require 'fileutils'
 require 'rhosync'
+require 'rhosync/body_content_type_parser'
 
 module Rhosync
   
@@ -17,15 +18,13 @@ module Rhosync
     
   class Server < Sinatra::Base
     libdir = File.dirname(File.expand_path(__FILE__))
-    set :views,  "#{libdir}/server/views"
-    set :public, "#{libdir}/server/public"
-    set :static, true
+    set :views,         "#{libdir}/server/views"
+    set :public_folder, "#{libdir}/server/public"
+    set :static,        true
+    set :stats,         false
     
     # default secret
     @@secret = '<changeme>'
-    
-    # stats middleware disabled by default
-    @@stats = false
                                                                                          
     # Setup route and mimetype for bulk data downloads
     # TODO: Figure out why "mime :data, 'application/octet-stream'" doesn't work
@@ -60,7 +59,7 @@ module Rhosync
       def login
         if params[:login] == 'rhoadmin'
           user = User.authenticate(params[:login], params[:password])
-        elsif current_app and current_app.can_authenticate?
+        elsif current_app and current_app.can_authenticate? and params[:login]
           user = current_app.authenticate(params[:login], params[:password], session)
         end
         if user
@@ -142,26 +141,25 @@ module Rhosync
     
     # hook into new so we can enable middleware
     def self.new
-      if @@stats == true
+      use Rhosync::BodyContentTypeParser
+      if settings.respond_to?(:stats) and settings.send(:stats) == true
         use Rhosync::Stats::Middleware 
-        Rhosync.stats = true
+       	Rhosync.stats = true
+      else
+       	Rhosync::Server.disable :stats
+       	Rhosync.stats = false
       end
+      Rhosync::Server.set :secret, @@secret unless settings.respond_to?(:secret)
       use Rack::Session::Cookie, 
-            :key => 'rhosync_session',
-            :expire_after => 31536000,
-            :secret => @@secret     
-      super
-    end
-    
-    def self.set(option, value=self, &block)
-      @@stats = value if option == :stats and (value.is_a?(TrueClass) or value.is_a?(FalseClass))
-      @@secret = value if option == :secret and value.is_a?(String)
+          :key => 'rhosync_session',
+          :expire_after => 31536000,
+          :secret => Rhosync::Server.secret
       super
     end
         
     def initialize
       # Whine about default session secret
-      check_default_secret!(@@secret)
+      check_default_secret!(Rhosync::Server.secret)
       super
     end
     
@@ -173,11 +171,6 @@ module Rhosync
           cud = JSON.parse(params["cud"])
           params.delete("cud")
           params.merge!(cud)
-        end
-        #application/json; charset=UTF-8
-        if request.env['CONTENT_TYPE'] && request.env['CONTENT_TYPE'].match(/^application\/json/)
-          params.merge!(JSON.parse(request.body.read))
-          request.body.rewind
         end      
       rescue JSON::ParserError => jpe
         log jpe.message + jpe.backtrace.join("\n")
@@ -189,7 +182,6 @@ module Rhosync
       if params[:version] and params[:version].to_i < 3
         throw :halt, [404, "Server supports version 3 or higher of the protocol."]
       end
-      #log "request params: #{params.inspect}"
     end
 
     %w[get post].each do |verb|

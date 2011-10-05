@@ -66,7 +66,7 @@ begin
     gemspec.files =  FileList["[A-Z]*", "{bench,bin,generators,lib,spec,tasks}/**/*"]
 
     # TODO: Due to https://www.pivotaltracker.com/story/show/3417862, we can't use JSON 1.4.3
-    gemspec.add_dependency "sinatra", "= 1.2.7"
+    gemspec.add_dependency "sinatra", ">= 1.2.7"
     gemspec.add_dependency "json", "~>1.4.2"
     gemspec.add_dependency "sqlite3-ruby", "~>1.2.5"
     gemspec.add_dependency "rubyzip", "~>0.9.4"

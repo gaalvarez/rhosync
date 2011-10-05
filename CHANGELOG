@@ -1,4 +1,7 @@
-## 2.1.11 (not released)
+## 2.1.12
+* #19143845 - added sinatra 1.3.x support
+
+## 2.1.11
 * #17526603 - implement clientreset support for specified sources
 * #18356697 - store lock is never released (support request #1466)
 * use redis 2.2.12 by default

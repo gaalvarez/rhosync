@@ -3,12 +3,16 @@ require File.join(File.dirname(__FILE__),'api_helper')
 describe "RhosyncApiStats" do
   it_should_behave_like "ApiHelper"
   
+  def app
+    @app = Rhosync::Server.new
+  end
+  
   before(:each) do
-    Rhosync.stats = true
+    Rhosync::Server.set :stats, true
   end
   
   after(:each) do
-    Rhosync.stats = false
+    Rhosync::Server.set :stats, false
   end
   
   it "should retrieve metric names" do
@@ -55,6 +59,7 @@ describe "RhosyncApiStats" do
   end
   
   it "should raise error if stats not enabled" do
+    Rhosync::Server.set :stats, false
     Rhosync.stats = false
     post "/api/stats", {
       :api_token => @api_token, 
