@@ -18,10 +18,14 @@ module Rhosync
     
   class Server < Sinatra::Base
     libdir = File.dirname(File.expand_path(__FILE__))
-    set :views,         "#{libdir}/server/views"
-    set :public_folder, "#{libdir}/server/public"
-    set :static,        true
-    set :stats,         false
+    set :views,           "#{libdir}/server/views"
+    if Sinatra.const_defined?("VERSION") && Gem::Version.new(Sinatra::VERSION) >= Gem::Version.new("1.3.0")
+      set :public_folder, "#{libdir}/server/public"
+    else
+     	set :public,        "#{libdir}/server/public"
+    end
+    set :static,          true
+    set :stats,           false
     
     # default secret
     @@secret = '<changeme>'
