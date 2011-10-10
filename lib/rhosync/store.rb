@@ -209,17 +209,22 @@ module Rhosync
         ts = current_time+(Rhosync.lock_duration || timeout)+1
         loop do 
           if not @@db.setnx(lock_key,ts)
-            if raise_on_expire or Rhosync.raise_on_expired_lock
-              if @@db.get(lock_key).to_i <= current_time
-                # lock expired before operation which set it up completed
-                # this process cannot continue without corrupting locked data 
-                raise StoreLockException, "Lock \"#{lock_key}\" expired before it was released"
-              end
-            else  
-              if @@db.get(lock_key).to_i <= current_time and 
-                @@db.getset(lock_key,ts).to_i <= current_time
-                # previous lock expired and we replaced it with our own
-                break
+            current_lock = @@db.get(lock_key)
+            # ensure lock wasn't released between the setnx and get calls
+            if current_lock
+              current_lock_timeout = current_lock.to_i
+              if raise_on_expire or Rhosync.raise_on_expired_lock
+                if current_lock_timeout <= current_time
+                  # lock expired before operation which set it up completed
+                  # this process cannot continue without corrupting locked data 
+                  raise StoreLockException, "Lock \"#{lock_key}\" expired before it was released"
+                end
+              else  
+                if current_lock_timeout <= current_time and 
+                  @@db.getset(lock_key,ts).to_i <= current_time
+                  # previous lock expired and we replaced it with our own
+                  break
+                end
               end
             end
             sleep(1)
