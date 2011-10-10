@@ -59,19 +59,19 @@ module Rhosync
     end
     
     def do_query(params=nil)
-      @source.lock(:md) do
-        @source.if_need_refresh do
-          Stats::Record.update("source:query:#{@source.name}") do
-            if _auth_op('login')
-              result = self.read(nil,params)
-              _auth_op('logoff')
-            end
-            # update refresh time
-            query_failure = Store.get_keys(@source.docname(:errors)).size > 0
-            @source.update_refresh_time(query_failure)
+      result = nil
+      @source.if_need_refresh do
+        Stats::Record.update("source:query:#{@source.name}") do
+          if _auth_op('login')
+            result = self.read(nil,params)
+            _auth_op('logoff')
           end
-        end
+          # re-wind refresh time in case of error
+          query_failure = Store.get_keys(@source.docname(:errors)).size > 0
+          @source.rewind_refresh_time(query_failure)
+        end  
       end
+      result
     end
     
     # Enqueue a job for the source based on job type

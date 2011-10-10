@@ -1,4 +1,6 @@
 ## 2.1.12
+* #19304885 - fixing race condition in get_lock (lock is released between setnx and get calls)
+* #18508155 - on failed syncs allow the user to retry it up to pre-defined number of times (another approach)
 * #19143845 - added sinatra 1.3.x support
 
 ## 2.1.11

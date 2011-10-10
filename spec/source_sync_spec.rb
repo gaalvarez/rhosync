@@ -219,13 +219,13 @@ describe "SourceSync" do
         # 1) if retry_limit is set to N - then, first N retries should not update refresh_time
         @s.read_state.retry_counter.should == 1
         @s.read_state.refresh_time.should <= Time.now.to_i
-        
+
         # try once more and fail again
         set_test_data('test_db_storage',{},msg,"query error")
         res = @ss.do_query
         verify_result(@s.docname(:md) => {},
           @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
-        
+
         # 2) if retry_limit is set to N and number of retries exceeded it - update refresh_time
         @s.read_state.retry_counter.should == 0
         @s.read_state.refresh_time.should > Time.now.to_i
@@ -241,7 +241,7 @@ describe "SourceSync" do
         # 1) if retry_limit is set to N - then, first N retries should not update refresh_time
         @s.read_state.retry_counter.should == 1
         @s.read_state.refresh_time.should <= Time.now.to_i
-        
+
         # try once more (with success)
         expected = {'1'=>@product1,'2'=>@product2}
         set_test_data('test_db_storage',expected)
@@ -251,7 +251,40 @@ describe "SourceSync" do
         @s.read_state.retry_counter.should == 0
         @s.read_state.refresh_time.should > Time.now.to_i
       end
-      
+
+      it "should reset the retry counter if prev_refresh_time was set more than poll_interval secs ago" do
+        @s.retry_limit = 3
+        @s.poll_interval = 2
+        msg = "Error during query"
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        # 1) if retry_limit is set to N - then, first N retries should not update refresh_time
+        @s.read_state.retry_counter.should == 1
+        @s.read_state.refresh_time.should <= Time.now.to_i
+
+        # 2) Make another error - results are the same
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        # 1) if retry_limit is set to N - then, first N retries should not update refresh_time
+        @s.read_state.retry_counter.should == 2
+        @s.read_state.refresh_time.should <= Time.now.to_i
+
+        # wait until time interval exprires and prev_refresh_time is too old - 
+        # this should reset the counter on next request with error
+        # and do not update refresh_time
+        sleep(3)
+        set_test_data('test_db_storage',{},msg,"query error")
+        res = @ss.do_query
+        verify_result(@s.docname(:md) => {},
+          @s.docname(:errors) => {'query-error'=>{'message'=>msg}})
+        @s.read_state.retry_counter.should == 1
+        @s.read_state.refresh_time.should <= Time.now.to_i
+      end
+
       it "should do query with exception raised and update refresh time if retry_limit is 0" do
         @s.retry_limit = 0
         msg = "Error during query"
@@ -263,7 +296,7 @@ describe "SourceSync" do
         @s.read_state.retry_counter.should == 0
         @s.read_state.refresh_time.should > Time.now.to_i
       end
-      
+
       it "should do query with exception raised and update refresh time if poll_interval == 0" do
         @s.retry_limit = 1
         @s.poll_interval = 0
@@ -292,6 +325,7 @@ describe "SourceSync" do
         verify_result("source:#{@test_app_name}:__shared__:#{@s_fields[:name]}:md" => expected)
         Store.db.keys("read_state:#{@test_app_name}:__shared__*").sort.should ==
           [ "read_state:#{@test_app_name}:__shared__:SampleAdapter:refresh_time",
+            "read_state:#{@test_app_name}:__shared__:SampleAdapter:prev_refresh_time",
             "read_state:#{@test_app_name}:__shared__:SampleAdapter:retry_counter",
             "read_state:#{@test_app_name}:__shared__:SampleAdapter:rho__id"].sort
       end

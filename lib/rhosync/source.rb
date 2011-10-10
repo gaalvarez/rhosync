@@ -265,40 +265,51 @@ module Rhosync
     end
          
     def if_need_refresh(client_id=nil,params=nil)
-      need_refresh = check_refresh_time
+      need_refresh = lock(:md) do |s|
+        check = check_refresh_time
+        self.read_state.prev_refresh_time = self.read_state.refresh_time if check
+        self.read_state.refresh_time = Time.now.to_i + self.poll_interval if check
+        check
+      end
       yield client_id,params if need_refresh
     end
     
-    def update_refresh_time(query_failure = false)
-      if self.poll_interval == 0
-        self.read_state.refresh_time = Time.now.to_i + self.poll_interval
-        return
-      end
-      
-      allowed_update = true
-      # reset number of retries on succesfull query
-      # or if last refresh was more than 'poll_interval' time ago
-      if not query_failure or (Time.now.to_i - self.read_state.refresh_time >= self.poll_interval)
-        self.read_state.retry_counter = 0 
-      end
-      
-      # do not reset the refresh time on failure
-      # if retry limit is not reached
-      if query_failure
-        if self.read_state.retry_counter < self.retry_limit
-          allowed_update = false
-          self.read_state.increment!(:retry_counter)
-        # we have reached the limit - update the refresh time
-        # and reset the counter
-        else
-          self.read_state.retry_counter = 0 
+    def rewind_refresh_time(query_failure)
+      lock(:md) do |s|
+        return if self.poll_interval == 0
+        
+        rewind_time = false
+        # reset number of retries 
+        # and prev_refresh_time on succesfull query
+        # or if last refresh was more than 'poll_interval' time ago
+        if not query_failure or ((Time.now.to_i - self.read_state.prev_refresh_time) >= self.poll_interval)
+          # we need to reset the prev_refresh_time here
+          # otherwise in case of expired poll interval
+          # and repeating failures - it will reset the counter 
+          # on every error
+          self.read_state.prev_refresh_time = Time.now.to_i
+          self.read_state.retry_counter = 0
         end
-      end
-      if allowed_update
-        self.read_state.refresh_time = Time.now.to_i + self.poll_interval
-      end
+      
+        # rewind the refresh time on failure
+        # if retry limit is not reached
+        if query_failure
+          if self.read_state.retry_counter < self.retry_limit
+            self.read_state.increment!(:retry_counter)
+            rewind_time = true
+            # we have reached the limit - do not rewind the refresh time
+            # and reset the counter
+          else
+            self.read_state.retry_counter = 0
+          end
+        end
+        
+        if rewind_time
+          self.read_state.refresh_time = self.read_state.prev_refresh_time
+        end
+      end 
     end
-          
+        
     private
     def poll_interval_key
       "source:#{self.name}:poll_interval"
