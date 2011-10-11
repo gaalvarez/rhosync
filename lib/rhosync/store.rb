@@ -193,6 +193,10 @@ module Rhosync
           @@db.del(keymask)
         end
       end
+      
+      def exists?(key)
+        @@db.exists(key)
+      end
     
       # Returns array of keys matching a given keymask
       def get_keys(keymask)

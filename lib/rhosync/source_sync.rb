@@ -67,9 +67,9 @@ module Rhosync
             _auth_op('logoff')
           end
           # re-wind refresh time in case of error
-          query_failure = Store.get_keys(@source.docname(:errors)).size > 0
+          query_failure = Store.exists?(@source.docname(:errors))
           @source.rewind_refresh_time(query_failure)
-        end  
+        end
       end
       result
     end
