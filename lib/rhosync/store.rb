@@ -180,8 +180,17 @@ module Rhosync
     
       # Deletes all keys matching a given mask
       def flash_data(keymask)
-        @@db.keys(keymask).each do |key|
-          @@db.del(key)
+        if keymask[/[*\[\]?]/]
+          # If the keymask contains any pattern matching characters
+          # Use keys command to find all keys matching pattern (this is extremely expensive)
+          # Then delete matches
+          @@db.keys(keymask).each do |key|
+            @@db.del(key)
+          end
+        else
+          # The keymask doesn't contain pattern matching characters
+          # A delete call is all that is needed
+          @@db.del(keymask)
         end
       end
     
