@@ -275,9 +275,8 @@ module Rhosync
     end
     
     def rewind_refresh_time(query_failure)
-      lock(:md) do |s|
-        return if self.poll_interval == 0
-        
+      return if self.poll_interval == 0
+      lock(:md) do |s|        
         rewind_time = false
         # reset number of retries 
         # and prev_refresh_time on succesfull query
