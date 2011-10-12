@@ -167,6 +167,29 @@ describe "Store" do
       Store.get_data(@s.docname(:md)).should == {}
     end
     
+    it "should flash_data for all keys matching pattern" do
+      keys = ['test_flash_data1','test_flash_data2']
+      keys.each {|key| Store.put_data(key,@data)}
+      Store.flash_data('test_flash_data*')
+      keys.each {|key| Store.get_data(key).should == {} }
+    end
+    
+    it "should flash_data without calling KEYS when there aren't pattern matching characters in the provided keymask" do
+      key = 'test_flash_data'
+      Store.put_data(key,@data)
+      Store.db.should_not_receive(:keys)
+      Store.db.should_receive(:del).once.with(key).and_return(true)
+      Store.flash_data(key)
+    end
+    
+    it "should flash_data and call KEYS when there are pattern matching characters in the provided keymask" do
+      keys = ['test_flash_data1','test_flash_data2']
+      keys.each {|key| Store.put_data(key,@data)}
+      Store.db.should_receive(:keys).exactly(1).times.with("test_flash_data*").and_return(keys)
+      Store.db.should_receive(:del).exactly(2).times.with(/^test_flash_data[12]$/).and_return(true)
+      Store.flash_data("test_flash_data*")
+    end
+    
     it "should get_keys" do
       expected = ["doc1:1:1:1:source1", "doc1:1:1:1:source2"]
       Store.put_data(expected[0],@data)
