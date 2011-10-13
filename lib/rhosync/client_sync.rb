@@ -40,7 +40,7 @@ module Rhosync
         return _resend_search_result if params[:token] and params[:resend]
         if params[:token] and !_ack_search(params[:token]) 
           formatted_result = _format_search_result
-          @client.flash_data('search*')
+          _delete_search
           return formatted_result
         end
       end
@@ -279,7 +279,7 @@ module Rhosync
     
     def _ack_search(search_token)
       if @client.get_value(:search_token) != search_token
-        @client.flash_data('search*')
+        _delete_search
         @client.put_data(:search_errors,
           {'search-error'=>{'message'=>'Search error - invalid token'}}
         )
@@ -294,7 +294,7 @@ module Rhosync
       @source_sync.search(@client.id,search_params) if params.nil? or !params[:token]
       res,diffsize = compute_search
       formatted_res = _format_search_result(res,diffsize)      
-      @client.flash_data('search*') if diffsize == 0
+      _delete_search if diffsize == 0
       formatted_res
     end
     
@@ -360,6 +360,12 @@ module Rhosync
         @client.flash_data("#{operation}_errors_page")
       end
       @client.flash_data("update_rollback_page")
+    end
+
+    def _delete_search
+      [:search, :search_page, :search_token, :search_errors].each do |search_doc|
+        @client.flash_data(search_doc)
+      end
     end
     
     def _send_errors
