@@ -9,6 +9,12 @@ describe "RhosyncApiGetApiToken" do
     last_response.body.should == @api_token
   end
   
+  it "response should have cache-control and pragma headers set to no-cache" do
+    post "/login", :login => 'rhoadmin',:password => ''
+    last_response.headers['Cache-Control'].should == 'no-cache'
+    last_response.headers['Pragma'].should == 'no-cache'
+  end
+  
   it "should fail to get token if user is not rhoadmin" do
     post "/login", :login => @u_fields[:login],:password => 'testpass'
     post "/api/get_api_token"

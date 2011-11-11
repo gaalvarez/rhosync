@@ -170,19 +170,9 @@ module Rhosync
     Rhosync.log "Rhosync Server v#{Rhosync::VERSION} started..."
 
     before do
-      begin
-        if params["cud"]
-          cud = JSON.parse(params["cud"])
-          params.delete("cud")
-          params.merge!(cud)
-        end      
-      rescue JSON::ParserError => jpe
-        log jpe.message + jpe.backtrace.join("\n")
-        throw :halt, [500, "Server error while processing client data"]
-      rescue Exception => e
-        log e.message + e.backtrace.join("\n")
-        throw :halt, [500, "Internal server error"]
-      end
+      cache_control :no_cache
+      headers({'pragma'=>'no-cache'})
+      
       if params[:version] and params[:version].to_i < 3
         throw :halt, [404, "Server supports version 3 or higher of the protocol."]
       end
@@ -247,6 +237,19 @@ module Rhosync
     end
 
     post '/application' do
+      begin
+        if params["cud"]
+          cud = JSON.parse(params["cud"])
+          params.delete("cud")
+          params.merge!(cud)
+        end      
+      rescue JSON::ParserError => jpe
+        log jpe.message + jpe.backtrace.join("\n")
+        throw :halt, [500, "Server error while processing client data"]
+      rescue Exception => e
+        log e.message + e.backtrace.join("\n")
+        throw :halt, [500, "Internal server error"]
+      end
       catch_all do
         current_client_sync.receive_cud(params)
         status 200

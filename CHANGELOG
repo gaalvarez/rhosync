@@ -1,3 +1,7 @@
+## 2.1.13
+* #20910767 - fix for cud params modification in before filter (support requests #1802, #1804)
+* #20917129 - add Cache-Control:no-cache and Pragma:no-cache headers into response
+
 ## 2.1.12
 * #19304885 - fixing race condition in get_lock (lock is released between setnx and get calls)
 * #18508155 - on failed syncs allow the user to retry it up to pre-defined number of times (another approach)
