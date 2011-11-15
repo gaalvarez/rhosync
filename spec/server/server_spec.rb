@@ -427,6 +427,9 @@ describe "Server" do
           Rack::Test::UploadedFile.new(File.join(File.dirname(__FILE__),'..','testdata',file1), "application/octet-stream"),
           'txtfile-rhoblob-2' => 
             Rack::Test::UploadedFile.new(File.join(File.dirname(__FILE__),'..','testdata',file2), "application/octet-stream")}
+      last_response.should be_ok
+      data = Store.get_data('test_create_storage')
+      data.size.should == 2
       Store.get_data('test_create_storage').each do |id,obj|
         File.exists?(obj['txtfile-rhoblob']).should == true
       end
