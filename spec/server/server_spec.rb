@@ -32,6 +32,7 @@ describe "Server" do
   end
   
   it "should show status page" do
+    pending
     get '/'
     last_response.body.match(Rhosync::VERSION)[0].should == Rhosync::VERSION
   end
