@@ -1,5 +1,6 @@
-## 2.1.14 (not yet released)
+## 2.1.14
 * #20910767 - fixing the incorrect tests for cud params and blob create
+* #22820737 - fixing rack support (1.3.6 is used)
 
 ## 2.1.13
 * #20910767 - fix for cud params modification in before filter (support requests #1802, #1804)
