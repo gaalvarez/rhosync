@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "rhosync"
-  s.version = "2.1.14"
+  s.version = "2.1.16"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Rhomobile"]
-  s.date = "2011-12-30"
+  s.date = "2012-02-07"
   s.description = "RhoSync Synchronization Framework and related command-line utilities"
   s.email = "dev@rhomobile.com"
   s.executables = ["rhosync"]
@@ -264,7 +264,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://rhomobile.com/products/rhosync"
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.13"
+  s.rubygems_version = "1.8.10"
   s.summary = "RhoSync Synchronization Framework"
 
   if s.respond_to? :specification_version then
