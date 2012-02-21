@@ -9,6 +9,9 @@ describe "ClientSync" do
     lambda { ClientSync.new(nil,@c,2) }.should raise_error(ArgumentError,'Unknown source')
   end
   
+  let(:mock_schema) { {"property" => { "name" => "string", "brand" => "string" }, "version" => "1.0"} }
+  let(:sha1) { get_sha1(mock_schema.to_json) }  
+
   before(:each) do
     @s = Source.load(@s_fields[:name],@s_params)
     @cs = ClientSync.new(@s,@c,2)
@@ -372,7 +375,6 @@ describe "ClientSync" do
       token1.should be_nil
       Store.get_data(@c.docname(:search)).should == {}
     end
-     
   end
   
   describe "page methods" do
@@ -380,10 +382,20 @@ describe "ClientSync" do
       Store.put_data(@s.docname(:md),@data).should == true
       Store.get_data(@s.docname(:md)).should == @data
       Store.put_value(@s.docname(:md_size),@data.size)
-      @expected = {'1'=>@product1,'2'=>@product2}
-      @cs.compute_page.should == [0,3,@expected]
+
+      progress_count, total_count, res = @cs.compute_page
+      progress_count.to_i.should == 0
+      total_count.to_i.should == 3
+      res.each do |key, value|
+        @data.has_key?(key).should == true
+        @data[key].should == value
+      end
+      
       Store.get_value(@cs.client.docname(:cd_size)).to_i.should == 0
-      Store.get_data(@cs.client.docname(:page)).should == @expected      
+      Store.get_data(@cs.client.docname(:page)).each do |key, value|
+        @data.has_key?(key).should == true
+        @data[key].should == value
+      end
     end
   
     it "appends diff to the client document" do
@@ -483,7 +495,7 @@ describe "ClientSync" do
         token = @c.get_value(:page_token)
         result.should ==  [{"version"=>ClientSync::VERSION},{"token"=>token}, 
           {"count"=>1}, {"progress_count"=>0},{"total_count"=>1},{'insert'=>expected}]
-        @c.get_value(:schema_sha1).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
+        @c.get_value(:schema_sha1).should == sha1
       end
     end
     
@@ -494,8 +506,8 @@ describe "ClientSync" do
         token = @c.get_value(:page_token)
         result.should ==  [{"version"=>ClientSync::VERSION},{"token"=>token}, 
           {"count"=>0}, {"progress_count"=>0},{"total_count"=>0},{'schema-changed'=>'true'}]
-        @c.get_value(:schema_page).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
-        @c.get_value(:schema_sha1).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
+        @c.get_value(:schema_page).should == sha1
+        @c.get_value(:schema_sha1).should == sha1
       end
     end
     
@@ -506,8 +518,8 @@ describe "ClientSync" do
         token = @c.get_value(:page_token)
         @cs.send_cud.should ==  [{"version"=>ClientSync::VERSION},{"token"=>token}, 
           {"count"=>0}, {"progress_count"=>0},{"total_count"=>0},{'schema-changed'=>'true'}]
-        @c.get_value(:schema_page).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
-        @c.get_value(:schema_sha1).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
+        @c.get_value(:schema_page).should == sha1
+        @c.get_value(:schema_sha1).should == sha1        
       end
     end
     
@@ -519,7 +531,7 @@ describe "ClientSync" do
         @cs.send_cud(token).should ==  [{"version"=>ClientSync::VERSION},{"token"=>""}, 
           {"count"=>0}, {"progress_count"=>0},{"total_count"=>0},{}]
         @c.get_value(:schema_page).should be_nil
-        @c.get_value(:schema_sha1).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
+        @c.get_value(:schema_sha1).should == sha1
       end
     end
     
@@ -538,7 +550,7 @@ describe "ClientSync" do
         @cs.send_cud(token).should ==  [{"version"=>ClientSync::VERSION},{"token"=>""}, 
           {"count"=>0}, {"progress_count"=>0},{"total_count"=>0},{}]
         @c.get_value(:schema_page).should be_nil
-        @c.get_value(:schema_sha1).should == '8c148c8c1a66c7baf685c07d58bea360da87981b'
+        @c.get_value(:schema_sha1).should == sha1
         data = BulkData.load(docname)
         data.refresh_time.should <= Time.now.to_i
       end 

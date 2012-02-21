@@ -28,13 +28,28 @@ module Rhosync
     set :stats,           false
     
     # default secret
-    @@secret = '<changeme>'
+    @secret = '<changeme>'
                                                                                          
     # Setup route and mimetype for bulk data downloads
     # TODO: Figure out why "mime :data, 'application/octet-stream'" doesn't work
     Rack::Mime::MIME_TYPES['.data'] = 'application/octet-stream'   
      
     include Rhosync
+
+    # Set rhosync middleware
+    set :use_middleware, Proc.new {
+      return false if @middleware_configured # Middleware might be configured only once!
+
+      use Rhosync::BodyContentTypeParser
+      use Rhosync::Stats::Middleware
+      Rhosync::Server.set :secret, @secret unless settings.respond_to?(:secret)
+      use Rack::Session::Cookie,
+          :key => 'rhosync_session',
+          :expire_after => 31536000,
+          :secret => Rhosync::Server.secret
+
+      @middleware_configured ||= true
+    }
                                                               
     helpers do
       def request_action
@@ -145,19 +160,13 @@ module Rhosync
     
     # hook into new so we can enable middleware
     def self.new
-      use Rhosync::BodyContentTypeParser
       if settings.respond_to?(:stats) and settings.send(:stats) == true
-        use Rhosync::Stats::Middleware 
-       	Rhosync.stats = true
+        Rhosync.stats = true
       else
-       	Rhosync::Server.disable :stats
-       	Rhosync.stats = false
+        Rhosync::Server.disable :stats
+        Rhosync.stats = false
       end
-      Rhosync::Server.set :secret, @@secret unless settings.respond_to?(:secret)
-      use Rack::Session::Cookie, 
-          :key => 'rhosync_session',
-          :expire_after => 31536000,
-          :secret => Rhosync::Server.secret
+      settings.use_middleware      
       super
     end
         

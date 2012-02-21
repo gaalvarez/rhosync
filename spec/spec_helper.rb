@@ -203,6 +203,11 @@ module TestHelpers
       end
     end
   end
+
+  def get_sha1(str)
+    Digest::SHA1.hexdigest(str)
+  end  
+  
 end #TestHelpers
 
 describe "RhosyncHelper", :shared => true do

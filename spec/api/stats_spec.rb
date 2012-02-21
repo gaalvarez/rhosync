@@ -9,10 +9,12 @@ describe "RhosyncApiStats" do
   
   before(:each) do
     Rhosync::Server.set :stats, true
+    Rhosync.stats = true
   end
   
   after(:each) do
     Rhosync::Server.set :stats, false
+    Rhosync.stats = false
   end
   
   it "should retrieve metric names" do

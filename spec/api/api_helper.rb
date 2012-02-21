@@ -24,6 +24,8 @@ describe "ApiHelper", :shared => true do
   end
 
   def app
+    Rhosync::Server.set :stats, false
+    Rhosync.stats = false
     @app ||= Rhosync::Server.new
   end
 
