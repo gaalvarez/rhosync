@@ -137,7 +137,7 @@ module Rhosync
     if secret == '<changeme>'                        
       log "*"*60+"\n\n"
       log "WARNING: Change the session secret in config.ru from <changeme> to something secure."
-      log "  i.e. running `rake secret` in a rails app will generate a secret you could use.\n\n"
+      log "  i.e. running `rake rhosync:secret` in your rhosync app directory will generate a secret you could use.\n\n"
       log "*"*60
     end
   end

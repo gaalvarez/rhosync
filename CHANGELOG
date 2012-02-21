@@ -1,3 +1,7 @@
+## 2.1.17 (not yet released)
+* Refactor server middleware to use it only one. Remove explicit rack dependency.
+  Fixed broken rspec examples.
+
 ## 2.1.16
 * revert rack support for v. 1.4.1 and lock to v. 1.3.6 due to problems with Heroku deployment (Rack 1.4.1 produces 502 error) 
 
