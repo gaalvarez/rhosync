@@ -9,9 +9,6 @@ module Rhosync
     class << self
       def create(fields={})
         fields[:id] = fields[:name]
-        begin
-          require under_score(fields[:name])
-        rescue Exception; end
         super(fields)
       end
     end
