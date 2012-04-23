@@ -1,6 +1,7 @@
 ## 2.1.17 (not yet released)
 * Refactor server middleware. Remove explicit rack dependency. Fix broken rspec examples.
 * Fixing error with recursive loading of application.rb in ruby-1.8.7 and ree
+* #28330213 - Implementing fast_insert/update/delete API
 * #27612327 - Bulk Sync Not Returning Errors from Zendesk ticket #2336
 * #28219647 - Schema Change Error from Zendesk ticket #2353
 

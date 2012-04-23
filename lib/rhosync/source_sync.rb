@@ -81,6 +81,29 @@ module Rhosync
         @source.app_id,@source.user_id,client_id,params)
     end
     
+    def fast_insert(new_objs, timeout=10,raise_on_expire=false)
+      @source.lock(:md,timeout,raise_on_expire) do |s|
+        diff_count = new_objs.size
+        @source.put_data(:md, new_objs, true)
+        @source.update_count(:md_size,diff_count)
+      end
+    end
+    
+    def fast_update(orig_hash, new_hash, timeout=10,raise_on_expire=false)
+      @source.lock(:md,timeout,raise_on_expire) do |s|
+        @source.delete_data(:md, orig_hash)
+        @source.put_data(:md, new_hash, true)
+      end
+    end 
+    
+    def fast_delete(delete_objs, timeout=10,raise_on_expire=false)
+      @source.lock(:md,timeout,raise_on_expire) do |s|
+        diff_count = -delete_objs.size
+        @source.delete_data(:md, delete_objs)
+        @source.update_count(:md_size,diff_count)
+      end
+    end
+    
     def push_objects(objects,timeout=10,raise_on_expire=false,rebuild_md=true)
       @source.lock(:md,timeout,raise_on_expire) do |s|
         diff_count = 0
