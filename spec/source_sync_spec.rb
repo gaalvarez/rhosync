@@ -82,10 +82,23 @@ describe "SourceSync" do
         @ss.process_query
         verify_result(@s.docname(:md) => expected)
         JSON.parse(Store.get_value(@s.docname(:schema))).should == mock_schema
-        Store.get_value(@s.docname(:schema_sha1)) == get_sha1(mock_schema.to_json)
+        Store.get_value(@s.docname(:schema_sha1)).should == get_sha1(mock_schema['version'])
       end
     end
-    
+
+    it "should raise exception if source adapter schema has no version key/value pair" do
+      mock_schema_no_version_method([SampleAdapter]) do
+        expected = {'1'=>@product1,'2'=>@product2}
+        set_state('test_db_storage' => expected)
+        @ss.process_query
+         errordoc = @s.docname(:errors)
+         errors = {}
+         Store.lock(errordoc) { errors = Store.get_data(errordoc) }
+         errors.empty?().should == false
+         errors["query-error"]["message"].should == "Mandatory version key is not defined in source adapter schema method"
+      end
+    end
+
     it "should process source adapter with stash" do
       expected = {'1'=>@product1,'2'=>@product2}
       set_state('test_db_storage' => expected)

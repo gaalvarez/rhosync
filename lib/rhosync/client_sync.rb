@@ -256,6 +256,21 @@ module Rhosync
         
         if data and data.completed? and data.dbfiles_exist?
           client.update_clientdoc(sources)
+          sources.each do |src|
+            s = Source.load(src, {:user_id => client.user_id, :app_id => client.app_id})
+            errordoc = s.docname(:errors)
+            errors = {}
+            Store.lock(errordoc) do
+              errors = Store.get_data(errordoc)
+            end
+            unless errors.empty?
+              # FIXME: :result => :bulk_sync_error, :errors => "#{errors}"
+              log "Bulk sync errors are found in #{src}: #{errors}"
+              # Delete all related bulk files
+              FileUtils.rm Dir.glob(File.join(Rhosync.base_directory, "#{data.url}*"))
+              return {:result => :url, :url => ''}
+            end
+          end
           {:result => :url, :url => data.url}
         elsif data
           {:result => :wait}

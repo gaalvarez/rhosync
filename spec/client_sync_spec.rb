@@ -10,7 +10,7 @@ describe "ClientSync" do
   end
   
   let(:mock_schema) { {"property" => { "name" => "string", "brand" => "string" }, "version" => "1.0"} }
-  let(:sha1) { get_sha1(mock_schema.to_json) }  
+  let(:sha1) { get_sha1(mock_schema['version']) }
 
   before(:each) do
     @s = Source.load(@s_fields[:name],@s_params)
@@ -592,6 +592,17 @@ describe "ClientSync" do
         "client:#{@a_fields[:name]}:#{@u_fields[:login]}:#{@c.id}:#{@s_fields[:name]}:cd" => @data,
         "source:#{@a_fields[:name]}:#{@u_fields[:login]}:#{@s_fields[:name]}:md" => @data,
         "source:#{@a_fields[:name]}:#{@u_fields[:login]}:#{@s_fields[:name]}:md_copy" => @data)
+    end
+
+    it "should return empty bulk data url if there are errors in query" do
+      ClientSync.bulk_data(:user,@c)
+      BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      errordoc = @s.docname(:errors) # source SampleAdapter
+      operation = 'query'
+      Store.lock(errordoc) do
+        Store.put_data(errordoc,{"#{operation}-error"=>{'message'=>"Some exception message"}}, true)
+      end
+      ClientSync.bulk_data(:user,@c).should == {:result => :url, :url => ''}
     end
     
     it "should escape bulk data url" do
