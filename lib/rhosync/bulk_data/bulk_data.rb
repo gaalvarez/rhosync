@@ -54,7 +54,11 @@ module Rhosync
       end
       true
     end
-    
+
+    def delete_files
+      FileUtils.rm Dir.glob(File.join(Rhosync.base_directory, "#{self.url}*"))
+    end
+
     class << self
       def create(fields={})
         fields[:id] = fields[:name]

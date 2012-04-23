@@ -267,7 +267,7 @@ module Rhosync
               # FIXME: :result => :bulk_sync_error, :errors => "#{errors}"
               log "Bulk sync errors are found in #{src}: #{errors}"
               # Delete all related bulk files
-              FileUtils.rm Dir.glob(File.join(Rhosync.base_directory, "#{data.url}*"))
+              data.delete_files
               return {:result => :url, :url => ''}
             end
           end
