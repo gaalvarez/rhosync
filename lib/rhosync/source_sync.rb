@@ -282,7 +282,14 @@ module Rhosync
         data = @adapter.send(method) 
         if data
           @source.put_value(method,data)
-          @source.put_value("#{method}_sha1",Digest::SHA1.hexdigest(data))
+          if method == :schema
+            parsed = JSON.parse(data)
+            schema_version = parsed['version']
+            raise "Mandatory version key is not defined in source adapter schema method" if schema_version.nil? 
+            @source.put_value("#{method}_sha1",Digest::SHA1.hexdigest(schema_version))
+          else
+            @source.put_value("#{method}_sha1",Digest::SHA1.hexdigest(data))
+          end
         end
       end
     end

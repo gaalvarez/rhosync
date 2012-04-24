@@ -21,14 +21,34 @@ module Rhosync
           create_hsql_data_file(bulk_data,ts) if Rhosync.blackberry_bulk_sync
           lap_timer('create_hsql_data_file',timer)
           log "finished bulk data process"
-          bulk_data.state = :completed
-          bulk_data.refresh_time = Time.now.to_i + Rhosync.bulk_sync_poll_interval
+          #bulk_data.state = :completed
+          #bulk_data.refresh_time = Time.now.to_i + Rhosync.bulk_sync_poll_interval
         else
           raise Exception.new("No bulk data found for #{params["data_name"]}")
         end
       rescue Exception => e
         bulk_data.delete if bulk_data
         log "Bulk data job raised: #{e.message}"
+        log e.backtrace.join("\n")
+        raise e
+      end
+    end
+
+    def self.after_perform_x(*args)
+      log "BulkDataJob.after_perform_x hook called ..."
+      params = args[0] # 1st parameter is bulk data
+      begin
+        bulk_data = BulkData.load(params["data_name"]) if BulkData.is_exist?(params["data_name"])
+        if bulk_data
+          bulk_data.state = :completed
+          bulk_data.refresh_time = Time.now.to_i + Rhosync.bulk_sync_poll_interval
+          log "BulkDataJob.after_perform_x hook set data state to complete."
+        else 
+          raise Exception.new("No bulk data found for #{params["data_name"]}")
+        end
+      rescue Exception => e
+        bulk_data.delete if bulk_data
+        log "Bulk data after_perform_x raised: #{e.message}"
         log e.backtrace.join("\n")
         raise e
       end
