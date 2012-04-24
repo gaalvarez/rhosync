@@ -26,6 +26,7 @@ describe "BulkDataJob" do
       :user_id => @u.id,
       :sources => [@s_fields[:name], 'FixedSchemaAdapter'])
     BulkDataJob.perform("data_name" => data.name)
+    BulkDataJob.after_perform_x("data_name" => data.name)
     data = BulkData.load(docname)
     data.completed?.should == true
     verify_result(@s.docname(:md) => @data,@s.docname(:md_copy) => @data)
@@ -53,6 +54,7 @@ describe "BulkDataJob" do
       :user_id => @u.id,
       :sources => [@s_fields[:name]])
     BulkDataJob.perform("data_name" => data.name)
+    BulkDataJob.after_perform_x("data_name" => data.name)
     data = BulkData.load(docname)
     data.completed?.should == true
     verify_result(@s.docname(:md) => @data,@s.docname(:md_copy) => @data)
@@ -71,6 +73,7 @@ describe "BulkDataJob" do
         :user_id => @u.id,
         :sources => [@s_fields[:name]])
       BulkDataJob.perform("data_name" => data.name)
+      BulkDataJob.after_perform_x("data_name" => data.name)
       data = BulkData.load(docname)
       data.completed?.should == true
       verify_result(@s.docname(:md) => @data,
@@ -90,6 +93,7 @@ describe "BulkDataJob" do
         :user_id => @u.id,
         :sources => [@s_fields[:name]])
       BulkDataJob.perform("data_name" => data.name)
+      BulkDataJob.after_perform_x("data_name" => data.name)
       data = BulkData.load(docname)
       data.completed?.should == true
       verify_result(@s.docname(:md) => @data, @s.docname(:md_copy) => @data)
@@ -109,7 +113,9 @@ describe "BulkDataJob" do
   end
   
   it "should delete bulk data if exception is raised" do
-    lambda { BulkDataJob.perform("data_name" => 'broken') }.should raise_error(Exception)
+    lambda { 
+      BulkDataJob.perform("data_name" => 'broken')
+      BulkDataJob.after_perform_x("data_name" => data.name) }.should raise_error(Exception)
     Store.db.keys('bulk_data*').should == []
   end
   
@@ -119,7 +125,9 @@ describe "BulkDataJob" do
       :app_id => 'broken',
       :user_id => @u.id,
       :sources => [@s_fields[:name]])
-    lambda { BulkDataJob.perform("data_name" => data.name) }.should raise_error(Exception)
+    lambda { 
+      BulkDataJob.perform("data_name" => data.name)
+      BulkDataJob.after_perform_x("data_name" => data.name) }.should raise_error(Exception)
     Store.db.keys('bulk_data*').should == []
   end
 end

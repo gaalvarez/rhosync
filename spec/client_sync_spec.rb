@@ -586,6 +586,7 @@ describe "ClientSync" do
       set_state('test_db_storage' => @data)
       ClientSync.bulk_data(:user,@c)
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,@u.id))
       ClientSync.bulk_data(:user,@c).should == {:result => :url,
         :url => BulkData.load(bulk_data_docname(@a.id,@u.id)).url}
       verify_result(
@@ -597,6 +598,7 @@ describe "ClientSync" do
     it "should return empty bulk data url if there are errors in query" do
       ClientSync.bulk_data(:user,@c)
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,@u.id))
       errordoc = @s.docname(:errors) # source SampleAdapter
       operation = 'query'
       Store.lock(errordoc) do
@@ -613,6 +615,7 @@ describe "ClientSync" do
         :user_id => name,
         :sources => [@s_fields[:name]])
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,name))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,name))
       data = BulkData.load(bulk_data_docname(@a.id,name))
       data.url.should match /a%20b/
       data.delete
@@ -623,6 +626,7 @@ describe "ClientSync" do
       @s.partition = :app
       ClientSync.bulk_data(:app,@c)
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,"*"))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,"*"))
       ClientSync.bulk_data(:app,@c).should == {:result => :url,
         :url => BulkData.load(bulk_data_docname(@a.id,"*")).url}
       verify_result(
@@ -636,6 +640,7 @@ describe "ClientSync" do
       @s.sync_type = :bulk_sync_only
       ClientSync.bulk_data(:user,@c)
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,@u.id))
       ClientSync.bulk_data(:user,@c).should == {:result => :url,
         :url => BulkData.load(bulk_data_docname(@a.id,@u.id)).url}
       verify_result(
@@ -649,6 +654,7 @@ describe "ClientSync" do
       Rhosync.blackberry_bulk_sync = true
       ClientSync.bulk_data(:user,@c)
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,@u.id))
       data = BulkData.load(bulk_data_docname(@a.id,@u.id))
       ClientSync.bulk_data(:user,@c).should == {:result => :url, :url => data.url}
       File.delete(data.dbfile)

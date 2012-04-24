@@ -372,6 +372,7 @@ describe "Server" do
       set_state('test_db_storage' => @data)
       get "/application/bulk_data", :partition => :user, :client_id => @c.id
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,@u.id))
       get "/application/bulk_data", :partition => :user, :client_id => @c.id
       last_response.should be_ok
       data = BulkData.load(bulk_data_docname(@a.id,@u.id))
@@ -384,6 +385,7 @@ describe "Server" do
       set_state('test_db_storage' => @data)
       get "/application/bulk_data", :partition => :user, :client_id => @c.id
       BulkDataJob.perform("data_name" => bulk_data_docname(@a.id,@u.id))
+      BulkDataJob.after_perform_x("data_name" => bulk_data_docname(@a.id,@u.id))
       get "/application/bulk_data", :partition => :user, :client_id => @c.id
       get JSON.parse(last_response.body)["url"]
       last_response.should be_ok
