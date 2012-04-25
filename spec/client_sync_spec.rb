@@ -25,6 +25,19 @@ describe "ClientSync" do
         @cs.client.docname(:update) => {},
         @cs.client.docname(:delete) => {})
     end
+    
+    it "should handle receive cud that triggers processing of the previously queued data" do
+      params = {'create'=>{'1'=>@product1},'update'=>{'2'=>@product2},'delete'=>{'3'=>@product3}}
+      queued_create_data = {'1'=>@product1}
+      set_state(@c.docname(:create) => queued_create_data)
+      verify_result(@cs.client.docname(:create) => queued_create_data,
+        @cs.client.docname(:update) => {},
+        @cs.client.docname(:delete) => {})
+      @cs.receive_cud({})
+      verify_result(@cs.client.docname(:create) => {},
+        @cs.client.docname(:update) => {},
+        @cs.client.docname(:delete) => {})
+    end
   
     it "should handle send cud" do
       data = {'1'=>@product1,'2'=>@product2}
