@@ -5,6 +5,7 @@
 * #27612327 - Bulk Sync Not Returning Errors from Zendesk ticket #2336
 * #28219647 - Schema Change Error from Zendesk ticket #2353
 * #28328057 - Feature Request: Adding a Bulk Data Job after_perform hook from Zendesk ticket #2367
+* Empty cud hash to trigger processing of the queued data (Zendesk #2383)
 
 ## 2.1.16
 * revert rack support for v. 1.4.1 and lock to v. 1.3.6 due to problems with Heroku deployment (Rack 1.4.1 produces 502 error) 
