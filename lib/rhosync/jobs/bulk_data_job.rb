@@ -134,21 +134,25 @@ module Rhosync
       end
       str[0..-2]
     end
-    
+
+    # #2354: Bulk sync not updating sources table
+    # last_inserted_size +
+    # last_deleted_size
+    # backend_refresh_time +
     def self.populate_sources_table(db,sources_refs) 
       db.transaction do |database|
         database.prepare("insert into sources
-          (source_id,name,sync_priority,partition,sync_type,source_attribs,metadata,schema,blob_attribs,associations) 
-          values (?,?,?,?,?,?,?,?,?,?)") do |stmt|
+          (source_id,name,sync_priority,partition,sync_type,source_attribs,metadata,schema,blob_attribs,associations,last_inserted_size,backend_refresh_time) 
+          values (?,?,?,?,?,?,?,?,?,?,?,?)") do |stmt|
           sources_refs.each do |source_name,ref|
             s = ref[:source]
             stmt.execute(s.source_id,s.name,s.priority,s.partition_type.to_s,
-              s.sync_type.to_s,refs_to_s(ref[:refs]),s.get_value(:metadata),s.schema,s.blob_attribs,s.has_many)
+              s.sync_type.to_s,refs_to_s(ref[:refs]),s.get_value(:metadata),s.schema,s.blob_attribs,s.has_many,s.get_value(:md_size),s.read_state.refresh_time)
           end
         end
       end
     end  
-    
+
     def self.create_sqlite_data_file(bulk_data,ts)
       sources_refs = {}
       schema,index,bulk_data.dbfile = get_file_args(bulk_data.name,ts)
