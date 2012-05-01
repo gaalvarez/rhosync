@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "rhosync"
-  s.version = "2.1.17"
+  s.version = "2.1.17.beta3"
 
-  s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Rhomobile"]
-  s.date = "2012-02-20"
+  s.date = "2012-05-01"
   s.description = "RhoSync Synchronization Framework and related command-line utilities"
   s.email = "dev@rhomobile.com"
   s.executables = ["rhosync"]
@@ -70,6 +70,9 @@ Gem::Specification.new do |s|
     "lib/rhosync/api/create_user.rb",
     "lib/rhosync/api/delete_client.rb",
     "lib/rhosync/api/delete_user.rb",
+    "lib/rhosync/api/fast_delete.rb",
+    "lib/rhosync/api/fast_insert.rb",
+    "lib/rhosync/api/fast_update.rb",
     "lib/rhosync/api/get_api_token.rb",
     "lib/rhosync/api/get_client_params.rb",
     "lib/rhosync/api/get_db_doc.rb",
@@ -186,6 +189,9 @@ Gem::Specification.new do |s|
     "spec/api/create_user_spec.rb",
     "spec/api/delete_client_spec.rb",
     "spec/api/delete_user_spec.rb",
+    "spec/api/fast_delete_spec.rb",
+    "spec/api/fast_insert_spec.rb",
+    "spec/api/fast_update_spec.rb",
     "spec/api/get_api_token_spec.rb",
     "spec/api/get_client_params_spec.rb",
     "spec/api/get_db_doc_spec.rb",
@@ -264,14 +270,13 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://rhomobile.com/products/rhosync"
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.10"
+  s.rubygems_version = "1.8.24"
   s.summary = "RhoSync Synchronization Framework"
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<rack>, ["~> 1.3.6"])
       s.add_runtime_dependency(%q<sinatra>, ["~> 1.3.1"])
       s.add_runtime_dependency(%q<json>, ["~> 1.4.2"])
       s.add_runtime_dependency(%q<sqlite3-ruby>, ["~> 1.2.5"])
@@ -290,7 +295,6 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<rack-test>, [">= 0.5.3"])
       s.add_development_dependency(%q<thor>, [">= 0.13.6"])
     else
-      s.add_dependency(%q<rack>, ["~> 1.3.6"])
       s.add_dependency(%q<sinatra>, ["~> 1.3.1"])
       s.add_dependency(%q<json>, ["~> 1.4.2"])
       s.add_dependency(%q<sqlite3-ruby>, ["~> 1.2.5"])
@@ -310,7 +314,6 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<thor>, [">= 0.13.6"])
     end
   else
-    s.add_dependency(%q<rack>, ["~> 1.3.6"])
     s.add_dependency(%q<sinatra>, ["~> 1.3.1"])
     s.add_dependency(%q<json>, ["~> 1.4.2"])
     s.add_dependency(%q<sqlite3-ruby>, ["~> 1.2.5"])
