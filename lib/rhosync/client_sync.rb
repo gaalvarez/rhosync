@@ -15,18 +15,13 @@ module Rhosync
     end
     
     def receive_cud(cud_params={},query_params=nil)
-      # empty hash - means enforce processing of the queue
-      if cud_params.size == 0
-        @source_sync.process_cud(@client.id)
-      else
-        _process_blobs(cud_params)
-        processed = 0
-        ['create','update','delete'].each do |op|
-          key,value = op,cud_params[op]
-          processed += _receive_cud(key,value) if value
-        end
-        @source_sync.process_cud(@client.id) if processed > 0
+      _process_blobs(cud_params)
+      processed = 0
+      ['create','update','delete'].each do |op|
+        key,value = op,cud_params[op]
+        processed += _receive_cud(key,value) if value
       end
+      @source_sync.process_cud(@client.id)
     end
     
     def send_cud(token=nil,query_params=nil)
