@@ -33,7 +33,7 @@ describe "ClientSync" do
       verify_result(@cs.client.docname(:create) => queued_create_data,
         @cs.client.docname(:update) => {},
         @cs.client.docname(:delete) => {})
-      @cs.receive_cud({})
+      @cs.receive_cud({:source_name => @s_fields[:name]})
       verify_result(@cs.client.docname(:create) => {},
         @cs.client.docname(:update) => {},
         @cs.client.docname(:delete) => {})
