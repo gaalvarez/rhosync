@@ -13,6 +13,7 @@ describe "Ping Android" do
   
   it "should ping android successfully" do
     result = 'id=0:34234234134254%abc123\n'
+    Rhosync::Android.stub!(:get_config).and_return({:test => {:authtoken=>'test'}})
     @response.stub!(:code).and_return(200)
     @response.stub!(:body).and_return(result)
     @response.stub!(:[]).and_return(false)
@@ -23,6 +24,7 @@ describe "Ping Android" do
   
   it "should ping android with 503 connection error" do
     error = 'Connection refused'
+    Rhosync::Android.stub!(:get_config).and_return({:test => {:authtoken=>'test'}})
     @response.stub!(:body).and_return(error)
     RestClient.stub!(:post).and_return { raise RestClient::Exception.new(@response,503) }
     Android.should_receive(:log).twice
@@ -31,6 +33,7 @@ describe "Ping Android" do
   
   it "should ping android with 200 error message" do
     error = 'Error=QuotaExceeded'
+    Rhosync::Android.stub!(:get_config).and_return({:test => {:authtoken=>'test'}})
     @response.stub!(:code).and_return(200)
     @response.stub!(:body).and_return(error)
     @response.stub!(:[]).and_return(nil)
@@ -43,6 +46,7 @@ describe "Ping Android" do
     @response.stub!(:code).and_return(200)
     @response.stub!(:body).and_return('')
     @response.stub!(:[]).and_return({:update_client_auth => 'abc123'})
+    Rhosync::Android.stub!(:get_config).and_return({:test => {:authtoken=>'test'}})
     RestClient.stub!(:post).and_yield(@response)
     Android.should_receive(:log).twice
     lambda { Android.ping(@params) }.should raise_error(
@@ -53,6 +57,7 @@ describe "Ping Android" do
   it "should ping android with 401 error message" do
     @response.stub!(:code).and_return(401)
     @response.stub!(:body).and_return('')
+    Rhosync::Android.stub!(:get_config).and_return({:test => {:authtoken=>'test'}})
     RestClient.stub!(:post).and_yield(@response)
     Android.should_receive(:log).twice
     lambda { Android.ping(@params) }.should raise_error(
@@ -79,5 +84,14 @@ describe "Ping Android" do
     actual = Android.c2d_message(params)
     actual['collapse_key'] = "RAND_KEY" unless actual['collapse_key'].nil?
     actual.should == expected
+  end
+  
+  it "should do nothing if no token" do
+    Rhosync::Android.stub!(:get_config).and_return({:test => {}})
+    params = {"device_pin" => @c.device_pin,
+      "sources" => [], "message" => '', "vibrate" => '5', "sound" => 'hello.mp3'}
+    Rhosync::Android.should_receive(:get_config).once
+    RestClient.should_receive(:post).exactly(0).times
+    Android.ping(params)
   end
 end

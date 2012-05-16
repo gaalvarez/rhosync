@@ -11,27 +11,28 @@ module Rhosync
       begin
         settings = get_config(Rhosync.base_directory)[Rhosync.environment]
         authtoken = settings[:authtoken]
-              
-        RestClient.post(
-          'https://android.apis.google.com/c2dm/send', c2d_message(params), 
-          :authorization => "GoogleLogin auth=#{authtoken}"
-        ) do |response, request, result, &block|
-          # return exceptions based on response code & body
-          case response.code
-          when 200
-            # TODO: Automate authtoken updates
-            if response[:update_client_auth]
-              raise StaleAuthToken.new(
-                "Stale auth token, please update :authtoken: in settings.yml."
-              )
-            # body will contain the exception class
-            elsif response.body =~ /^Error=(.*)$/
-              raise AndroidPingError.new("Android ping error: #{$1 || ''}")
-            else
-              response.return!(request, result, &block)
+        if(authtoken)   
+          RestClient.post(
+            'https://android.apis.google.com/c2dm/send', c2d_message(params), 
+            :authorization => "GoogleLogin auth=#{authtoken}"
+          ) do |response, request, result, &block|
+            # return exceptions based on response code & body
+            case response.code
+            when 200
+              # TODO: Automate authtoken updates
+              if response[:update_client_auth]
+                raise StaleAuthToken.new(
+                  "Stale auth token, please update :authtoken: in settings.yml."
+                )
+              # body will contain the exception class
+              elsif response.body =~ /^Error=(.*)$/
+                raise AndroidPingError.new("Android ping error: #{$1 || ''}")
+              else
+                response.return!(request, result, &block)
+              end
+            when 401, 403
+              raise InvalidAuthToken.new("Invalid auth token, please update :authtoken: in settings.yml.")
             end
-          when 401, 403
-            raise InvalidAuthToken.new("Invalid auth token, please update :authtoken: in settings.yml.")
           end
         end
       rescue Exception => error
