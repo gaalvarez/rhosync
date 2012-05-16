@@ -7,17 +7,17 @@ module Rhosync
         settings = get_config(Rhosync.base_directory)[Rhosync.environment]
         host = settings[:mdsserver]
       	port = settings[:mdsserverport]
-        
-        headers = { "X-WAP-APPLICATION-ID" => "/",
-                    "X-RIM-PUSH-DEST-PORT" => params['device_port'],
-                    "CONTENT-TYPE" => 'multipart/related; type="application/xml"; boundary=asdlfkjiurwghasf'}
+        if (host and port)
+          headers = { "X-WAP-APPLICATION-ID" => "/",
+                      "X-RIM-PUSH-DEST-PORT" => params['device_port'],
+                      "CONTENT-TYPE" => 'multipart/related; type="application/xml"; boundary=asdlfkjiurwghasf'}
                     
-        Net::HTTP.new(host,port).start do |http|
-          request = Net::HTTP::Post.new('/pap',headers)
-          request.body = pap_message(params)
-          http.request(request)
+          Net::HTTP.new(host,port).start do |http|
+            request = Net::HTTP::Post.new('/pap',headers)
+            request.body = pap_message(params)
+            http.request(request)
+          end
         end
-
       rescue Exception => error
         log "Error while sending ping: #{error}"
         raise error

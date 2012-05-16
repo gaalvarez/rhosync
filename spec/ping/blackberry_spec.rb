@@ -27,8 +27,27 @@ describe "Ping Blackberry" do
   it "should ping blackberry with connection error" do
     error = 'Connection refused'
     @http.stub!(:request).and_return { raise SocketError.new(error) }
+    Rhosync::Blackberry.stub!(:get_config).and_return({:test => {:mdsserver=>'testserver',:mdsserverport=>'testport'}})
+    Rhosync::Blackberry.should_receive(:get_config).once
     Blackberry.should_receive(:log).once.with("Error while sending ping: #{error}")
     lambda { Blackberry.ping(@params) }.should raise_error(SocketError,error)
+  end
+  
+  it "should ping blackberry with connection error" do
+    error = 'Connection refused'
+    Rhosync::Blackberry.stub!(:get_config).and_return({:test => {:mdsserver=>'testserver',:mdsserverport=>'testport'}})
+    Rhosync::Blackberry.should_receive(:get_config).once
+    @http.stub!(:request).and_return { raise SocketError.new(error) }
+    Blackberry.should_receive(:log).once.with("Error while sending ping: #{error}")
+    lambda { Blackberry.ping(@params) }.should raise_error(SocketError,error)
+  end
+  
+  it "should do nothing if no host and port" do
+    error = 'Connection refused'
+    Rhosync::Blackberry.stub!(:get_config).and_return({:test => {}})
+    Rhosync::Blackberry.should_receive(:get_config).once
+    Net::HTTP.should_receive(:new).exactly(0).times
+    Blackberry.ping(@params) 
   end
   
   it "should compute pap_message" do
