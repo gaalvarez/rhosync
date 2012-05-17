@@ -60,6 +60,19 @@ describe "BulkData" do
     BulkData.get_name(:app,@c.user_id).should == 
       File.join(@a_fields[:name],@a_fields[:name])
   end
+
+  it "should have ordered sources list" do
+    data = BulkData.create(:name => bulk_data_docname(@a.id,@u.id),
+      :state => :inprogress,
+      :app_id => @a.id,
+      :user_id => @u.id,
+      :sources => @a.partition_sources(:user, @u.id))
+    data.sources[0, -1].should == ["SampleAdapter", "FixedSchemaAdapter"]
+  end
+
+  it "should have ordered sources list by priority" do
+    pending
+  end
   
   it "should process_sources for bulk data" do
     current = Time.now.to_i

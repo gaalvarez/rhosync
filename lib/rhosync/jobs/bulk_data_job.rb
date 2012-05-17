@@ -160,7 +160,7 @@ module Rhosync
       db = SQLite3::Database.new(bulk_data.dbfile)
       db.execute_batch(File.open(schema,'r').read)
       src_counter = 1
-      bulk_data.sources.members.sort.each do |source_name|
+      bulk_data.sources[0, -1].each do |source_name|
         timer = start_timer("start importing sqlite data for #{source_name}")
         source = Source.load(source_name,{:app_id => bulk_data.app_id,
           :user_id => bulk_data.user_id})

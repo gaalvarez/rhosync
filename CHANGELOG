@@ -9,7 +9,8 @@
 * #28328057 - Feature Request: Adding a Bulk Data Job after_perform hook from Zendesk ticket #2367
 * Empty cud hash to trigger processing of the queued data (Zendesk #2383)
 * Revert fix for Zendesk ticket #2336 by customer request
-* #28094895 - Zendesk ticket #2354: Bulk sync not updating sources table (fields 'last_inserted_size' and 'backend_refresh_time' now updated) 
+* #28094895 - Zendesk ticket #2354: Bulk sync not updating sources table (fields 'last_inserted_size' and 'backend_refresh_time' now updated
+* #29796429 - Zendesk ticket #2447: use list to preserve bulk data sources order
 
 ## 2.1.16
 * revert rack support for v. 1.4.1 and lock to v. 1.3.6 due to problems with Heroku deployment (Rack 1.4.1 produces 502 error) 

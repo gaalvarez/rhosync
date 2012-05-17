@@ -9,7 +9,7 @@ module Rhosync
     field :user_id, :string
     field :refresh_time, :integer
     field :dbfile,:string
-    set   :sources, :string
+    list   :sources, :string
     validates_presence_of :app_id, :user_id, :sources
     
     def completed?
@@ -20,7 +20,7 @@ module Rhosync
     end
     
     def delete
-      sources.members.each do |source|
+      sources[0, -1].each do |source|
         s = Source.load(source,{:app_id => app_id, :user_id => user_id})
         Store.flash_data(s.docname(:md_copy)) if s
       end
@@ -28,7 +28,7 @@ module Rhosync
     end
     
     def process_sources
-      sources.members.each do |source|
+      sources[0, -1].each do |source|
         s = Source.load(source,{:app_id => app_id, :user_id => user_id})
         if s
           SourceSync.new(s).process_query(nil)

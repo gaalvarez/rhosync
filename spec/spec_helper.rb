@@ -102,7 +102,7 @@ module TestHelpers
   end
   
   def validate_db(bulk_data,data)
-    validate_db_file(bulk_data.dbfile,bulk_data.sources.members,data)  
+    validate_db_file(bulk_data.dbfile,bulk_data.sources[0, -1],data)  
   end
     
   def validate_db_file(dbfile,sources,data)  
