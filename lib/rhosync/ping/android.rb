@@ -26,7 +26,14 @@ module Rhosync
                 )
               # body will contain the exception class
               elsif response.body =~ /^Error=(.*)$/
-                raise AndroidPingError.new("Android ping error: #{$1 || ''}")
+                if $1 =~ /NotRegistered/
+                  client = Client.load(params['client_id'],{:source_name => '*'})
+                  client.phone_id = nil
+                  client.device_pin = nil
+                  client.device_port = nil
+                else
+                  raise AndroidPingError.new("Android ping error: #{$1 || ''}")
+                end
               else
                 response.return!(request, result, &block)
               end

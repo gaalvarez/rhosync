@@ -27,7 +27,8 @@ module Rhosync
         user = User.load(user_id)
         user.clients.members.each do |client_id|
           client = Client.load(client_id,{:source_name => '*'})
-          params.merge!('device_port' => client.device_port, 'device_pin' => client.device_pin, 'phone_id' => client.phone_id)
+          params.merge!('device_port' => client.device_port, 'device_pin' => client.device_pin, 'phone_id' => client.phone_id,
+                        'client_id' => client_id)
           send_push = false
           if client.device_type and client.device_type.size > 0
             if client.phone_id and client.phone_id.size > 0
