@@ -1,4 +1,5 @@
 ## 2.1.17 (not yet released)
+* #29214293 - do not execute ping if the platform is not configured
 * Refactor server middleware. Remove explicit rack dependency. Fix broken rspec examples.
 * Fixing error with recursive loading of application.rb in ruby-1.8.7 and ree
 * #28330213 - Implementing fast_insert/update/delete API
