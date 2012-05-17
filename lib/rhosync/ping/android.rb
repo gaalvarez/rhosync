@@ -27,7 +27,7 @@ module Rhosync
               # body will contain the exception class
               elsif response.body =~ /^Error=(.*)$/
                 err = $1
-                if err =~ /NotRegistered/
+                if err =~ /NotRegistered/ or err =~ /InvalidRegistration/
                   client = Client.load(params['client_id'],{:source_name => '*'})
                   client.phone_id = nil
                   client.device_pin = nil
