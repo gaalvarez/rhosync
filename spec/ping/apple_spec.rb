@@ -68,4 +68,11 @@ describe "Ping Apple" do
     lambda { Apple.ping(@params) }.should raise_error(SocketError,error)
   end
   
+  it "should do nothing if no cert or host or port" do
+    Rhosync::Apple.stub!(:get_config).and_return({:test => {:iphonecertfile=>"none"}})
+    Rhosync::Apple.should_receive(:get_config).once
+    OpenSSL::SSL::SSLContext.should_receive(:new).exactly(0).times
+    Apple.ping(@params)
+  end
+  
 end

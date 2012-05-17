@@ -8,24 +8,26 @@ module Rhosync
       cert = File.read(cert_file) if File.exists?(cert_file)
     	passphrase = settings[:iphonepassphrase]
     	host = settings[:iphoneserver]
-    	port = settings[:iphoneport] 
-      begin
-        ssl_ctx = OpenSSL::SSL::SSLContext.new
-    		ssl_ctx.key = OpenSSL::PKey::RSA.new(cert, passphrase)
-    		ssl_ctx.cert = OpenSSL::X509::Certificate.new(cert)
+    	port = settings[:iphoneport]
+    	if(cert and host and port) 
+        begin
+          ssl_ctx = OpenSSL::SSL::SSLContext.new
+      		ssl_ctx.key = OpenSSL::PKey::RSA.new(cert, passphrase)
+      		ssl_ctx.cert = OpenSSL::X509::Certificate.new(cert)
 
-    		socket = TCPSocket.new(host, port)
-    		ssl_socket = OpenSSL::SSL::SSLSocket.new(socket, ssl_ctx)
-    		ssl_socket.sync = true
-    		ssl_socket.connect
+      		socket = TCPSocket.new(host, port)
+      		ssl_socket = OpenSSL::SSL::SSLSocket.new(socket, ssl_ctx)
+      		ssl_socket.sync = true
+      		ssl_socket.connect
 
-    		ssl_socket.write(apn_message(params))
-    		ssl_socket.close
-    		socket.close
-  		rescue SocketError => error
-  		  log "Error while sending ping: #{error}"
-  		  raise error
-  		end
+      		ssl_socket.write(apn_message(params))
+      		ssl_socket.close
+      		socket.close
+    		rescue SocketError => error
+    		  log "Error while sending ping: #{error}"
+    		  raise error
+    		end
+    	end
     end
 
     # Generates APNS package
