@@ -24,7 +24,7 @@ describe "PingJob" do
       "sources" => [@s.name], "message" => 'hello world', 
       "vibrate" => '5', "badge" => '5', "sound" => 'hello.mp3', "phone_id" => nil}
     Apple.should_receive(:ping).once.with({'device_pin' => @c.device_pin,
-      'device_port' => @c.device_port}.merge!(params))
+      'device_port' => @c.device_port, 'client_id' => @c.id}.merge!(params))
     PingJob.perform(params)
   end
   
@@ -34,7 +34,7 @@ describe "PingJob" do
       "vibrate" => '5', "badge" => '5', "sound" => 'hello.mp3', "phone_id" => nil}
     @c.device_type = 'blackberry'
     Blackberry.should_receive(:ping).once.with({'device_pin' => @c.device_pin,
-      'device_port' => @c.device_port}.merge!(params))
+      'device_port' => @c.device_port, 'client_id' => @c.id}.merge!(params))
     PingJob.perform(params)
   end
   
@@ -66,8 +66,9 @@ describe "PingJob" do
     @c1 = Client.create(@c_fields,{:source_name => @s_fields[:name]})
     # and yet another one ...
     @c2 = Client.create(@c_fields,{:source_name => @s_fields[:name]})
-
-    Apple.should_receive(:ping).with({'device_pin' => @c.device_pin, 'device_port' => @c.device_port}.merge!(params))
+    
+    Rhosync::Apple.stub!(:get_config).and_return({:test => {:iphonecertfile=>"none"}})
+    #Apple.should_receive(:ping).with({'device_pin' => @c.device_pin, 'device_port' => @c.device_port, 'client_id' => @c.id}.merge!(params))
     PingJob.should_receive(:log).twice.with(/Dropping ping request for client/)
     lambda { PingJob.perform(params) }.should_not raise_error
   end
@@ -82,8 +83,8 @@ describe "PingJob" do
     @c1 = Client.create(@c_fields,{:source_name => @s_fields[:name]})
     #  yet another...
     @c2 = Client.create(@c_fields,{:source_name => @s_fields[:name]})
-
-    Apple.should_receive(:ping).with({'device_pin' => @c.device_pin, 'phone_id' => @c.phone_id, 'device_port' => @c.device_port}.merge!(params))
+    Rhosync::Apple.stub!(:get_config).and_return({:test => {:iphonecertfile=>"none"}})
+    #Apple.should_receive(:ping).with({'device_pin' => @c.device_pin, 'phone_id' => @c.phone_id, 'device_port' => @c.device_port, 'client_id' => @c.id}.merge!(params))
     PingJob.should_receive(:log).twice.with(/Dropping ping request for client/)
     lambda { PingJob.perform(params) }.should_not raise_error
   end
@@ -98,8 +99,8 @@ describe "PingJob" do
       scrubbed_params['vibrate'] = '5'
       @c1.device_type = 'blackberry'
       
-      Apple.should_receive(:ping).with(params.merge!({'device_pin' => @c.device_pin, 'phone_id' => @c.phone_id, 'device_port' => @c.device_port})).and_return { raise SocketError.new("Socket failure") }
-      Blackberry.should_receive(:ping).with({'device_pin' => @c1.device_pin, 'device_port' => @c1.device_port}.merge!(scrubbed_params))
+      Apple.should_receive(:ping).with(params.merge!({'device_pin' => @c.device_pin, 'phone_id' => @c.phone_id, 'device_port' => @c.device_port,'client_id' => @c.id})).and_return { raise SocketError.new("Socket failure") }
+      Blackberry.should_receive(:ping).with({'device_pin' => @c1.device_pin, 'device_port' => @c1.device_port, 'client_id' => @c1.id}.merge!(scrubbed_params))
       exception_raised = false
       begin
         PingJob.perform(params)
