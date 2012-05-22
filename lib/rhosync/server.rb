@@ -218,21 +218,21 @@ module Rhosync
         content_type :json
         client = Client.create(:user_id => current_user.id,:app_id => current_app.id)
         client.update_fields(params)
-        { "client" => { "client_id" =>  client.id.to_s } }.merge!(source_config).to_json
+        { "client" => { "client_id" =>  client.id.to_s } }.to_json
       end
     end
 
     post '/application/clientregister' do
       catch_all do 
         current_client.update_fields(params)
-        source_config.to_json
+        status 200
       end
     end
 
     get '/application/clientreset' do
       catch_all do 
         ClientSync.reset(current_client, params)
-        source_config.to_json
+        status 200
       end
     end
 

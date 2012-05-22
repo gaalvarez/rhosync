@@ -92,18 +92,18 @@ module Rhosync
       end
       sources = config[:sources] || []
       Source.delete_all
+      app.delete_sources
       sources.each do |source_name,fields|
-        check_for_schema_field!(fields)
-        fields[:name] = source_name
-        Source.create(fields,{:app_id => app.name})
-        unless app.sources.members.include?(source_name)
-          app.sources << source_name
-        end
+        source_config = source_config(source_name)
+        check_for_schema_field!(source_config)
+        source_config[:name] = source_name
+        Source.create(source_config,{:app_id => app.name})
+        app.sources << source_name
         # load ruby file for source adapter to re-load class
         load under_score(source_name+'.rb')
       end
       # Create associations for all sources
-      Source.update_associations(app.sources.members)
+      Source.update_associations(app.sources)
     end
   end
   
@@ -127,8 +127,11 @@ module Rhosync
     YAML.load_file(settings_file) if settings_file and File.exist?(settings_file)
   end
   
-  def source_config
-    { "sources" => Rhosync.get_config(Rhosync.base_directory)[:sources] }
+  def source_config(source_name)
+    source_config = {}
+    sources = Rhosync.get_config(Rhosync.base_directory)[:sources]
+    source_config = sources[source_name] unless (sources.nil? or sources[source_name].nil?)
+    source_config
   end
   ### End Rhosync setup methods  
   

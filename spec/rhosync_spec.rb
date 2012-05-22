@@ -48,7 +48,7 @@ describe "Rhosync" do
     )
     App.should_receive(:load).twice.with(@test_app_name).and_return(app)
     Rhosync.bootstrap(get_testapp_path)
-    App.load(@test_app_name).sources.members.should == []
+    App.load(@test_app_name).sources.should == []
   end
   
   it "should exit if schema config exists" do

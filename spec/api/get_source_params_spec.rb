@@ -13,7 +13,7 @@ describe "RhosyncApiGetSourceParams" do
       {"name"=>"url", "value"=>"http://example.com", "type"=>"string"}, 
       {"name"=>"login", "value"=>"testuser", "type"=>"string"}, 
       {"name"=>"password", "value"=>"testpass", "type"=>"string"}, 
-      {"name"=>"priority", "value"=>3, "type"=>"integer"}, 
+      {"name"=>"priority", "value"=>1, "type"=>"integer"},
       {"name"=>"callback_url", "value"=>nil, "type"=>"string"}, 
       {"name"=>"poll_interval", "value"=>300, "type"=>"integer"},
       {"name"=>"retry_limit", "value"=>0, "type"=>"integer"},

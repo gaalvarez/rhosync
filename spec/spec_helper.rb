@@ -303,12 +303,14 @@ describe "DBObjectsHelper", :shared => true do
       :url => 'http://example.com',
       :login => 'testuser',
       :password => 'testpass',
+      :priority => '1'
     }
     @s1_fields = {
       :name => 'FixedSchemaAdapter',
       :url => 'http://example.com',
       :login => 'testuser',
       :password => 'testpass',
+      :priority => '5'
     }
     @s_params = {
       :user_id => @u.id,
@@ -318,12 +320,12 @@ describe "DBObjectsHelper", :shared => true do
     @s = Source.create(@s_fields,@s_params)
     @s1 = Source.create(@s1_fields,@s_params)
     @s1.belongs_to = [{'brand' => 'SampleAdapter'}].to_json    
-    config = Rhosync.source_config["sources"]['FixedSchemaAdapter']
+    config = Rhosync.source_config('FixedSchemaAdapter')
     @s1.update(config)
     @r = @s.read_state
     @a.sources << @s.id
     @a.sources << @s1.id
-    Source.update_associations(@a.sources.members)
+    Source.update_associations(@a.sources)
     @a.users << @u.id
   end
 end
