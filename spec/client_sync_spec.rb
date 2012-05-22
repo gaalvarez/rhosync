@@ -583,6 +583,7 @@ describe "ClientSync" do
     end
     
     it "should create bulk data job app partition if none exists and no partition sources" do
+      @a.sources.delete("SimpleAdapter")
       ClientSync.bulk_data(:app,@c).should == {:result => :nop}
       Resque.peek(:bulk_data).should == nil
     end

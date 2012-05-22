@@ -2,10 +2,11 @@ module Rhosync
   class App < Model
     field :name, :string
     set   :users, :string
-    set   :sources, :string
     attr_reader :delegate
     validates_presence_of :name
-    
+
+    @@sources = []
+
     class << self
       def create(fields={})
         fields[:id] = fields[:name]
@@ -31,10 +32,19 @@ module Rhosync
     def delegate
       @delegate.nil? ? Object.const_get(camelize(self.name)) : @delegate
     end
+
+    def delete
+      @@sources = []
+      super
+    end
+
+    def delete_sources
+      @@sources = []
+    end
     
     def partition_sources(partition,user_id)
       names = []
-      sources.members.each do |source|
+      @@sources.each do |source|
         s = Source.load(source,{:app_id => self.name,
           :user_id => user_id})
         if s.partition == partition
@@ -46,6 +56,12 @@ module Rhosync
     
     def store_blob(obj,field_name,blob)
       self.delegate.send :store_blob, obj,field_name,blob
+    end
+
+    def sources
+      @@sources.uniq!
+      # Sort sources array by priority
+      @@sources = @@sources.sort_by { |s| Source.load(s, {:app_id => self.name, :user_id => '*'}).priority }
     end
   end
 end

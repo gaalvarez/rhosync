@@ -1,11 +1,13 @@
 :sources:
   SampleAdapter:
     poll_interval: 300
+    priority: 1
   SimpleAdapter:
     poll_interval: 600
     partition_type: 'app'
   FixedSchemaAdapter:
     poll_interval: 300
+    priority: 5
     sync_type: 'incremental'
     belongs_to: 
       - brand: 'SampleAdapter'

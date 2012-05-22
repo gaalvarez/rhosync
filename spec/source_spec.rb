@@ -13,7 +13,7 @@ describe "Source" do
     @s.url.should == @s_fields[:url]
     @s.login.should == @s_fields[:login]
     @s.app.name.should == @a_fields[:name]
-    @s.priority.should == 3
+    @s.priority.should == 1
     @s.callback_url.should be_nil
     @s.queue.should be_nil
     @s.query_queue.should be_nil
@@ -29,7 +29,7 @@ describe "Source" do
     @s1.url.should == @s_fields[:url]
     @s1.login.should == @s_fields[:login]
     @s1.app.name.should == @a_fields[:name]
-    @s1.priority.should == 3
+    @s1.priority.should == 1
     @s1.callback_url.should be_nil
     @s1.poll_interval.should == 300
     @s1.app_id.should == @s_params[:app_id]
