@@ -129,15 +129,6 @@ describe "Server" do
   describe "client management routes" do
     before(:each) do
       do_post "/application/clientlogin", "login" => @u.login, "password" => 'testpass'
-      # @source_config = {
-      #   "sources"=>
-      #   {"FixedSchemaAdapter"=>
-      #     {"poll_interval"=>300,
-      #      "sync_type"=>"incremental",
-      #      "belongs_to"=>[{"brand"=>"SampleAdapter"}]},
-      #    "SampleAdapter"=>{"poll_interval"=>300},
-      #    "SimpleAdapter"=>{"partition_type"=>"app", "poll_interval"=>600}}
-      # }
     end
     
     it "should respond to clientcreate" do
