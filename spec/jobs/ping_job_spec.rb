@@ -110,5 +110,11 @@ describe "PingJob" do
       exception_raised.should == true
     end
   
-  
+    it "should skip ping for unknown user or user with no clients" do
+      params = {"user_id" => [ 'fake_user' ], "api_token" => @api_token,
+        "sources" => [@s.name], "message" => 'hello world', 
+        "vibrate" => '5', "badge" => '5', "sound" => 'hello.mp3', 'phone_id' => nil }
+      PingJob.should_receive(:log).once.with(/Skipping ping for unknown user 'fake_user' or 'fake_user' has no registered clients.../)
+      PingJob.perform(params)
+    end
 end

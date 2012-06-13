@@ -25,42 +25,47 @@ module Rhosync
         # all errors are recorded here
         errors = []
         user = User.load(user_id)
-        user.clients.members.each do |client_id|
-          client = Client.load(client_id,{:source_name => '*'})
-          params.merge!('device_port' => client.device_port, 'device_pin' => client.device_pin, 'phone_id' => client.phone_id,
-                        'client_id' => client_id)
-          send_push = false
-          if client.device_type and client.device_type.size > 0
-            if client.phone_id and client.phone_id.size > 0
-              unless phone_ids.include? client.phone_id   
-                phone_ids << client.phone_id
-                send_push = true
+        clients = user.clients if user
+        if clients
+          clients.members.each do |client_id|
+            client = Client.load(client_id,{:source_name => '*'})
+            params.merge!('device_port' => client.device_port, 'device_pin' => client.device_pin, 'phone_id' => client.phone_id,
+                          'client_id' => client_id)
+            send_push = false
+            if client.device_type and client.device_type.size > 0
+              if client.phone_id and client.phone_id.size > 0
+                unless phone_ids.include? client.phone_id   
+                  phone_ids << client.phone_id
+                  send_push = true
+                end
+              elsif client.device_pin and client.device_pin.size > 0
+                unless device_pins.include? client.device_pin   
+                  device_pins << client.device_pin
+                  send_push = true
+                end
+              else
+                log "Skipping ping for non-registered client_id '#{client_id}'..."
+                next
               end
-            elsif client.device_pin and client.device_pin.size > 0
-              unless device_pins.include? client.device_pin   
-                device_pins << client.device_pin
-                send_push = true
+              if send_push
+                klass = Object.const_get(camelize(client.device_type.downcase))
+                if klass
+                  params['vibrate'] = params['vibrate'].to_s
+                  begin
+                    klass.ping(params) 
+                  rescue Exception => e
+                    errors << e
+                  end
+                end
+              else
+                log "Dropping ping request for client_id '#{client_id}' because it's already in user's device pin or phone_id list."
               end
             else
               log "Skipping ping for non-registered client_id '#{client_id}'..."
-              next
             end
-            if send_push
-              klass = Object.const_get(camelize(client.device_type.downcase))
-              if klass
-                params['vibrate'] = params['vibrate'].to_s
-                begin
-                  klass.ping(params) 
-                rescue Exception => e
-                  errors << e
-                end
-              end
-            else
-              log "Dropping ping request for client_id '#{client_id}' because it's already in user's device pin or phone_id list."
-            end
-          else
-            log "Skipping ping for non-registered client_id '#{client_id}'..."
           end
+        else
+          log "Skipping ping for unknown user '#{user_id}' or '#{user_id}' has no registered clients..."
         end
         errors
     end
