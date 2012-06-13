@@ -1,3 +1,6 @@
+## 2.1.18.beta1
+* #31161737 - PingJob handles missing user ids or users with no clients
+
 ## 2.1.17
 * Reset device attributes if Android ping returns "Not Registered" Error
 * #29214293 - do not execute ping if the platform is not configured
