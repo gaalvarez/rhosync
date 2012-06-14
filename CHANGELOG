@@ -1,3 +1,6 @@
+## 2.1.18.beta2
+* #31245585 - blob_attribs in bulk database missing overwrite flag
+
 ## 2.1.18.beta1
 * #31161737 - PingJob handles missing user ids or users with no clients
 

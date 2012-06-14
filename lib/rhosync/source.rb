@@ -176,7 +176,11 @@ module Rhosync
       blob_attribs = []
       schema['property'].each do |key,value|
         values = value ? value.split(',') : []
-        blob_attribs << key if values.include?('blob')
+        if values.include?('blob')
+          attrib = key.dup
+          attrib << "," + (values.include?('overwrite') ? '1' : '0')
+          blob_attribs << attrib 
+        end
       end
       blob_attribs.sort.join(',')
     end
