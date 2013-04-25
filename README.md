@@ -1,3 +1,3 @@
-RhoSync
+CRhoSync
 -------------------------------------------------------------
-***RhoSync is deprecated and no longer actively maintained, please upgrade to [RhoConnect](http://rhomobile.com/products/rhoconnect).***
+Es una version de RhoSync con tratamiento de conflictos.
